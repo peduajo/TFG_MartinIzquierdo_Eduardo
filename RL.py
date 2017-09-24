@@ -9,15 +9,15 @@ import random
 import math
 import csv
 
-DISCOUNT_FACTOR = 0.9
-LEARNING_RATE = 0.1
+DISCOUNT_FACTOR = 0.5
+LEARNING_RATE = 0.3
 MAX_PASOS = 100
 FILAS = 7
 COLUMNAS = 7
 NUM_ACCIONES = 8
-REF_TESORO = 50
-REF_CESPED = 3
-REF_MONTANA = 1
+REF_TESORO = 200
+REF_CESPED = 10
+REF_MONTANA = 2
 REF_AGUA = 0.5
 
 
@@ -201,7 +201,6 @@ def getActionLearned(refuerzo,estado):
         if(refuerzo == refuerzoTabla):
             return acc
 
-
 num_estados = FILAS*COLUMNAS
 tablaEstados = {}
 Qmatrix = {}
@@ -222,10 +221,8 @@ bot.toString()
 
 #algoritm Q-learning online
 for paso in range(MAX_PASOS):
-    acciones = 0
     done = False
     clear_bot()
-    estado = estadoInicial
     bot.x = Xinicial
     bot.y = Yinicial
     update_bot()
@@ -233,17 +230,14 @@ for paso in range(MAX_PASOS):
         clear_bot()
         action = getAction()
         estado = getEstado()
-        print("la accion es: "+str(action) + " y el estado es: "+str(estado))
+        print("la accion es: "+str(action) + " ,el estado es: "+str(estado)+" y el paso es: "+str(paso))
         bot.moverse(action)
         update_bot()
         refuerzo = getRefuerzo()
         siguienteEstado = getEstado()
         siguienteRefuerzoMixto = maxRefuerzo(siguienteEstado)
-        Qmatrix[estado,action] += LEARNING_RATE * (refuerzo + DISCOUNT_FACTOR * siguienteRefuerzoMixto - Qmatrix[estado,action]);
+        Qmatrix[estado,action] += LEARNING_RATE * (refuerzo + DISCOUNT_FACTOR * siguienteRefuerzoMixto - Qmatrix[estado,action])
         done = check_tesoro()
-        acciones += 1
-        if(done):
-            print("paso: "+ str(paso) +" acciones: "+str(acciones))
 
 imprimirQmatrix()
 clear_bot()
@@ -259,9 +253,10 @@ while not done:
     estado = getEstado()
     mejorRefuerzo = maxRefuerzo(estado)
     action = getActionLearned(mejorRefuerzo,estado)
-    print("la accion es: "+str(action))
     bot.moverse(action)
-    done = check_tesoro()
     update_bot()
+    refuerzo = getRefuerzo()
+    print("la accion es: "+str(action)+ " y el refuerzo es: "+str(refuerzo))
+    done = check_tesoro()
     imprimir_mundo()
 
