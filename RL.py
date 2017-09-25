@@ -9,23 +9,25 @@ import random
 import math
 import csv
 
+#hiperparametros
 DISCOUNT_FACTOR = 0.5
-LEARNING_RATE = 0.3
+LEARNING_RATE = 0.125
 MAX_PASOS = 100
 FILAS = 7
 COLUMNAS = 7
 NUM_ACCIONES = 8
-REF_TESORO = 200
-REF_CESPED = 10
-REF_MONTANA = 2
+REF_TESORO = 20
+REF_CESPED = 1.5
+REF_MONTANA = 1
 REF_AGUA = 0.5
-
 
 class item:
     def __init__(self,y,x,type):
         self.y = y
         self.x = x
         self.type = type
+        self.end = False
+        self.estados = []
 
     def moverse(self,movimiento):
         if(movimiento==0):
@@ -49,8 +51,6 @@ class item:
             self.x -= 1
             self.y -= 1
 
-
-
     def toString(self):
         print('el objeto ' + self.type + ' esta en ' + str(self.y) + " " + str(self.x))
 
@@ -62,8 +62,19 @@ def imprimir_mundo():
         tabla += '\n'
     print(tabla)
 
-def recompensa(estado,accion):
-    return Qmatrix[estado,accion]
+def recompensa(action):
+    bot.moverse(action)
+    update_bot()
+    entornoactual = mundo[bot.y,bot.x][0]
+    item = mundo[bot.y,bot.x][1]
+    if(item=='t'):
+        return REF_TESORO
+    elif(entornoactual=='C'):
+        return REF_CESPED
+    elif(entornoactual=='A'):
+        return REF_AGUA
+    elif(entornoactual=='M'):
+        return REF_MONTANA
 
 
 def inicializar_mundo():
@@ -79,12 +90,7 @@ def update_tesoro():
 
 def clear_bot():
     mundo[bot.y,bot.x] = mundo[bot.y,bot.x][:len(mundo[bot.y,bot.x])-1]
-def check_tesoro():
-    if(bot.x == tesoro.x and bot.y == tesoro.y):
-        print("SE HA ENCONTRADO EL TESORO")
-        return True
-    else:
-        return False
+
 def getEstado():
     return tablaEstados[bot.y,bot.x]
 
@@ -122,10 +128,9 @@ def getAction():
     estado = getEstado()
     posiblesAcc = getPosiblesAcc()
     list = ""
-    for accion in posiblesAcc:
-        list+= " "+str(accion)
-        lis_rec.append(recompensa(estado,accion))
-    #print("posibles acciones: "+list)
+    for action in posiblesAcc:
+        list+= " "+str(action)
+        lis_rec.append(Qmatrix[estado,action])
     refuerzoTotal = sum(lis_rec)
     norm = [float(i)/refuerzoTotal for i in lis_rec]
     numR = random.uniform(0,1)
@@ -148,23 +153,12 @@ def inicializar_Qmatrix():
         for j in range(NUM_ACCIONES):
             Qmatrix[i,j] = math.pow(10,-4)
 
-def getRefuerzo():
-    entornoactual = mundo[bot.y,bot.x][0]
-    item = mundo[bot.y,bot.x][1]
-    if(item=='t'):
-        return REF_TESORO
-    elif(entornoactual=='C'):
-        return REF_CESPED
-    elif(entornoactual=='A'):
-        return REF_AGUA
-    elif(entornoactual=='M'):
-        return REF_MONTANA
-
 def maxRefuerzo(estado):
     lis_rec = []
     for i in range(NUM_ACCIONES):
         lis_rec.append(Qmatrix[estado,i])
     return max(lis_rec)
+
 
 def imprimirQmatrix():
     tabla = []
@@ -194,12 +188,49 @@ def imprimir_tablaEstados():
         tabla += '\n'
     print(tabla)
 
-def getActionLearned(refuerzo,estado):
-    posAcc = getPosiblesAcc()
-    for acc in posAcc:
-        refuerzoTabla = recompensa(estado,acc)
-        if(refuerzo == refuerzoTabla):
-            return acc
+def checkBot():
+    estadoBot = getEstado()
+    estadoTesoro = tablaEstados[tesoro.y,tesoro.x]
+    if(estadoBot == estadoTesoro):
+        bot.end = True
+    else:
+        bot.end = False
+
+def mejorAccion(estado):
+    lis_rec = []
+    lis_AllRec = []
+    Acc = getPosiblesAcc()
+    posAcc = []
+    list = ""
+    listAcc = ""
+    for acc in Acc:
+        lis_AllRec.append(Qmatrix[estado,acc])
+        proxEstado = getProximoEstado(acc)
+        if(proxEstado not in bot.estados):
+            list +=str(Qmatrix[estado,acc])+" "
+            listAcc += str(acc)+" "
+            posAcc.append(acc)
+            lis_rec.append(Qmatrix[estado,acc])
+
+
+    print("numero de posibles acciones: "+str(len(posAcc)))
+    if(len(posAcc) == 0):
+        return Acc[random.randint(0,len(Acc)-1)]
+    else:
+        print("Posibles recompensas: "+list+" Posibles acciones: "+listAcc)
+        return posAcc[lis_rec.index(max(lis_rec))]
+
+def getProximoEstado(action):
+    botAux = item(bot.y,bot.x,'bot')
+    botAux.moverse(action)
+    return tablaEstados[botAux.y,botAux.x]
+
+def imprimirEstadosRecorridos():
+    list = ""
+    for x in bot.estados:
+        list += str(x)+" "
+    print(list)
+
 
 num_estados = FILAS*COLUMNAS
 tablaEstados = {}
@@ -218,45 +249,52 @@ update_tesoro()
 update_bot()
 imprimir_mundo()
 bot.toString()
+tesoro.toString()
 
 #algoritm Q-learning online
 for paso in range(MAX_PASOS):
-    done = False
+    bot.end = False
     clear_bot()
     bot.x = Xinicial
     bot.y = Yinicial
     update_bot()
-    while not done:
+    acciones = 0
+    while not bot.end:
         clear_bot()
         action = getAction()
         estado = getEstado()
-        print("la accion es: "+str(action) + " ,el estado es: "+str(estado)+" y el paso es: "+str(paso))
-        bot.moverse(action)
-        update_bot()
-        refuerzo = getRefuerzo()
+        refuerzo = recompensa(action)
         siguienteEstado = getEstado()
         siguienteRefuerzoMixto = maxRefuerzo(siguienteEstado)
         Qmatrix[estado,action] += LEARNING_RATE * (refuerzo + DISCOUNT_FACTOR * siguienteRefuerzoMixto - Qmatrix[estado,action])
-        done = check_tesoro()
+        acciones +=1
+        checkBot()
+        if(bot.end):
+            print("Se ha encontrado el tesoro, paso: "+str(paso)+ " ,acciones tomadas: "+str(acciones))
+        if(acciones == 10000):
+           bot.end = True
 
 imprimirQmatrix()
+
+#test
 clear_bot()
 bot.x = Xinicial
 bot.y = Yinicial
 update_bot()
 imprimir_mundo()
-
-#demostracion del aprendizaje
-done = False
-while not done:
+bot.end = False
+while not bot.end:
     clear_bot()
     estado = getEstado()
-    mejorRefuerzo = maxRefuerzo(estado)
-    action = getActionLearned(mejorRefuerzo,estado)
+    bot.estados.append(estado)
+    action = mejorAccion(estado)
     bot.moverse(action)
+    print("se ha tomado la accion: "+str(action))
     update_bot()
-    refuerzo = getRefuerzo()
-    print("la accion es: "+str(action)+ " y el refuerzo es: "+str(refuerzo))
-    done = check_tesoro()
+    checkBot()
+    if(bot.end):
+        print("TESORO ENCONTRADO!")
     imprimir_mundo()
+
+imprimirEstadosRecorridos()
 
