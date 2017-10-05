@@ -13,12 +13,12 @@ import csv
 DISCOUNT_FACTOR = 0.5
 LEARNING_RATE = 0.125
 MAX_PASOS = 100
-FILAS = 7
-COLUMNAS = 7
+FILAS = 15
+COLUMNAS = 15
 NUM_ACCIONES = 8
-REF_TESORO = 20
-REF_CESPED = 1.5
-REF_MONTANA = 1
+REF_TESORO = 100
+REF_CESPED = 3
+REF_MONTANA = 1.5
 REF_AGUA = 0.5
 
 class item:
@@ -231,6 +231,57 @@ def imprimirEstadosRecorridos():
         list += str(x)+" "
     print(list)
 
+def algoritmoQLearningTraining():
+    #algoritm Q-learning online
+    for paso in range(MAX_PASOS):
+        alpha = 1
+        t = 1
+        bot.end = False
+        clear_bot()
+        bot.x = Xinicial
+        bot.y = Yinicial
+        update_bot()
+        acciones = 0
+        while not bot.end:
+            clear_bot()
+            action = getAction()
+            estado = getEstado()
+            refuerzo = recompensa(action)
+            siguienteEstado = getEstado()
+            siguienteRefuerzoMixto = maxRefuerzo(siguienteEstado)
+            #print("Experiencia : Estado: "+str(estado)+ " ,Accion: "+str(action)+" ,Refuerzo: "+str(refuerzo)+" ,Siguiente estado: "+str(siguienteEstado)+" , Siguiente refuerzo Mixto: "+str(siguienteRefuerzoMixto))
+            Qmatrix[estado,action] += alpha * (refuerzo + DISCOUNT_FACTOR * siguienteRefuerzoMixto - Qmatrix[estado,action])
+            acciones +=1
+            t += 1.0
+            alpha = math.pow(t,-0.1)
+            checkBot()
+            if(bot.end):
+                print("Se ha encontrado el tesoro, paso: "+str(paso)+ " ,acciones tomadas: "+str(acciones))
+
+def testing():
+    clear_bot()
+    bot.x = Xinicial
+    bot.y = Yinicial
+    update_bot()
+    imprimir_mundo()
+    bot.end = False
+    while not bot.end:
+        clear_bot()
+        estado = getEstado()
+        bot.estados.append(estado)
+        #coger accion con mayor recompensa
+        #action = mejorAccion(estado)
+        #coger accion segun probabilidades
+        action = getAction()
+        bot.moverse(action)
+        print("se ha tomado la accion: "+str(action))
+        update_bot()
+        checkBot()
+        if(bot.end):
+            print("TESORO ENCONTRADO!")
+        imprimir_mundo()
+
+    imprimirEstadosRecorridos()
 
 num_estados = FILAS*COLUMNAS
 tablaEstados = {}
@@ -250,51 +301,9 @@ update_bot()
 imprimir_mundo()
 bot.toString()
 tesoro.toString()
-
-#algoritm Q-learning online
-for paso in range(MAX_PASOS):
-    bot.end = False
-    clear_bot()
-    bot.x = Xinicial
-    bot.y = Yinicial
-    update_bot()
-    acciones = 0
-    while not bot.end:
-        clear_bot()
-        action = getAction()
-        estado = getEstado()
-        refuerzo = recompensa(action)
-        siguienteEstado = getEstado()
-        siguienteRefuerzoMixto = maxRefuerzo(siguienteEstado)
-        Qmatrix[estado,action] += LEARNING_RATE * (refuerzo + DISCOUNT_FACTOR * siguienteRefuerzoMixto - Qmatrix[estado,action])
-        acciones +=1
-        checkBot()
-        if(bot.end):
-            print("Se ha encontrado el tesoro, paso: "+str(paso)+ " ,acciones tomadas: "+str(acciones))
-        if(acciones == 10000):
-           bot.end = True
-
+algoritmoQLearningTraining()
 imprimirQmatrix()
+testing()
 
-#test
-clear_bot()
-bot.x = Xinicial
-bot.y = Yinicial
-update_bot()
-imprimir_mundo()
-bot.end = False
-while not bot.end:
-    clear_bot()
-    estado = getEstado()
-    bot.estados.append(estado)
-    action = mejorAccion(estado)
-    bot.moverse(action)
-    print("se ha tomado la accion: "+str(action))
-    update_bot()
-    checkBot()
-    if(bot.end):
-        print("TESORO ENCONTRADO!")
-    imprimir_mundo()
 
-imprimirEstadosRecorridos()
 
