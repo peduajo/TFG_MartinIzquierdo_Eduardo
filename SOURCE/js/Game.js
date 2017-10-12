@@ -4,12 +4,11 @@ AprendizajePorRefuerzo.Game = function () {};
 
 AprendizajePorRefuerzo.Game.prototype = {
     create : function(){
-        this.map = this.game.add.tilemap('map2');
+        this.map = this.game.add.tilemap('map');
         this.map.addTilesetImage('tiles2','gameTiles');
         this.backgroundlayer = this.map.createLayer('backgroundLayer');
         this.backgroundlayer.resizeWorld();
         this.bot = this.game.add.sprite(this.game.world.randomX,this.game.world.randomY,'bot');
-        this.bot.scale.setTo(0.5);
         this.game.physics.arcade.enable(this.bot);
         this.bot.body.collideWorldBounds = true;
         this.tx = this.game.world.randomX;
