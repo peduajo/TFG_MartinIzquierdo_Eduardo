@@ -30,27 +30,12 @@ class item:
         self.estados = []
 
     def moverse(self,movimiento):
-        if(movimiento==0):
-            self.y -= 1
-        elif(movimiento==1):
-            self.x += 1
-            self.y -= 1
-        elif(movimiento==2):
-            self.x += 1
-        elif(movimiento==3):
-            self.x += 1
-            self.y += 1
-        elif(movimiento==4):
-            self.y += 1
-        elif(movimiento==5):
-            self.x -= 1
-            self.y += 1
-        elif(movimiento==6):
-            self.x -= 1
-        elif(movimiento==7):
-            self.x -= 1
-            self.y -= 1
-
+        # incrementos segun el movimiento (inc_x,inc_y)
+        inc=[(0,-1),(1,-1),(1,0),(1,1),(0,1),(-1,1),(-1,0),(-1,-1)]
+        # actaliza la posicion con el movimiento
+        self.x += inc[movimiento][0]
+        self.y += inc[movimiento][1]
+        
     def toString(self):
         print('el objeto ' + self.type + ' esta en ' + str(self.y) + " " + str(self.x))
 
