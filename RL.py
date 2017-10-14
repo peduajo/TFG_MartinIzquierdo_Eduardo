@@ -289,8 +289,7 @@ def getAdyacentes(estadoOrigen):
         x += inc[acc][0]
         y += inc[acc][1]
         id = tablaEstados[y,x]
-        if(id != tablaEstados[bot.y,bot.x]):
-            adyacentes.append(estado(id,99999,estadoOrigen,x,y))
+        adyacentes.append(estado(id,99999,estadoOrigen,x,y))
         x = estadoOrigen.x
         y = estadoOrigen.y
     return adyacentes
