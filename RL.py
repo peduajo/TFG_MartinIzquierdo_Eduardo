@@ -4,22 +4,23 @@
 #Recompensas: cada estado tiene una recompensa distinta dependiendo de si es montana, agua o cesped o si ahi esta el tesoro
 #Estados: cada celda del mapa es un estado
 #Acciones: hay 8 acciones
-#arreglar posible bucle de acciones
 import random
 import math
 import csv
 
 #hiperparametros
+EPSILON_DECAY = 0.999
+EPSILON_MIN = 0.1
 DISCOUNT_FACTOR = 0.5
 LEARNING_RATE = 0.125
 MAX_PASOS = 100
-FILAS = 15
-COLUMNAS = 15
+FILAS = 20
+COLUMNAS = 20
 NUM_ACCIONES = 8
 REF_TESORO = 100
-REF_CESPED = 3
-REF_MONTANA = 1.5
-REF_AGUA = 0.5
+REF_CESPED = 10
+REF_MONTANA = 4
+REF_AGUA = 1
 
 class item:
     def __init__(self,y,x,type):
@@ -37,7 +38,15 @@ class item:
         self.y += inc[movimiento][1]
         
     def toString(self):
-        print('el objeto ' + self.type + ' esta en ' + str(self.y) + " " + str(self.x))
+        print('el objeto ' + self.type + ' esta en ' + str(self.x) + " " + str(self.y))
+
+class estado:
+    def __init__(self,id,coste,vieneDe,x,y):
+        self.id = id
+        self.coste = coste
+        self.vieneDe = vieneDe
+        self.x = x
+        self.y = y
 
 def imprimir_mundo():
     tabla = ''
@@ -79,9 +88,7 @@ def clear_bot():
 def getEstado():
     return tablaEstados[bot.y,bot.x]
 
-def getPosiblesAcc():
-    x = bot.x
-    y = bot.y
+def getPosiblesAcc(x,y):
     limDer = COLUMNAS-1
     limIzq = 0
     limAbajo = FILAS-1
@@ -106,12 +113,12 @@ def getPosiblesAcc():
         posiblesMov = [0,1,2,3,4,5,6,7]
     return posiblesMov
 
-def getAction():
+def getAction(epsilon):
     lis_rec = []
     caja_prob = []
     suma = 0
     estado = getEstado()
-    posiblesAcc = getPosiblesAcc()
+    posiblesAcc = getPosiblesAcc(bot.x,bot.y)
     list = ""
     for action in posiblesAcc:
         list+= " "+str(action)
@@ -119,6 +126,8 @@ def getAction():
     refuerzoTotal = sum(lis_rec)
     norm = [float(i)/refuerzoTotal for i in lis_rec]
     numR = random.uniform(0,1)
+    if(numR <= epsilon):
+        return posiblesAcc[random.randint(0,len(posiblesAcc)-1)]
     caja_prob.append(suma)
     for x in norm:
         suma += x
@@ -181,35 +190,6 @@ def checkBot():
     else:
         bot.end = False
 
-def mejorAccion(estado):
-    lis_rec = []
-    lis_AllRec = []
-    Acc = getPosiblesAcc()
-    posAcc = []
-    list = ""
-    listAcc = ""
-    for acc in Acc:
-        lis_AllRec.append(Qmatrix[estado,acc])
-        proxEstado = getProximoEstado(acc)
-        if(proxEstado not in bot.estados):
-            list +=str(Qmatrix[estado,acc])+" "
-            listAcc += str(acc)+" "
-            posAcc.append(acc)
-            lis_rec.append(Qmatrix[estado,acc])
-
-
-    print("numero de posibles acciones: "+str(len(posAcc)))
-    if(len(posAcc) == 0):
-        return Acc[random.randint(0,len(Acc)-1)]
-    else:
-        print("Posibles recompensas: "+list+" Posibles acciones: "+listAcc)
-        return posAcc[lis_rec.index(max(lis_rec))]
-
-def getProximoEstado(action):
-    botAux = item(bot.y,bot.x,'bot')
-    botAux.moverse(action)
-    return tablaEstados[botAux.y,botAux.x]
-
 def imprimirEstadosRecorridos():
     list = ""
     for x in bot.estados:
@@ -218,9 +198,8 @@ def imprimirEstadosRecorridos():
 
 def algoritmoQLearningTraining():
     #algoritm Q-learning online
+    epsilon = 0.1
     for paso in range(MAX_PASOS):
-        alpha = 1
-        t = 1
         bot.end = False
         clear_bot()
         bot.x = Xinicial
@@ -229,44 +208,96 @@ def algoritmoQLearningTraining():
         acciones = 0
         while not bot.end:
             clear_bot()
-            action = getAction()
+            action = getAction(epsilon)
             estado = getEstado()
             refuerzo = recompensa(action)
             siguienteEstado = getEstado()
             siguienteRefuerzoMixto = maxRefuerzo(siguienteEstado)
-            #print("Experiencia : Estado: "+str(estado)+ " ,Accion: "+str(action)+" ,Refuerzo: "+str(refuerzo)+" ,Siguiente estado: "+str(siguienteEstado)+" , Siguiente refuerzo Mixto: "+str(siguienteRefuerzoMixto))
-            Qmatrix[estado,action] += alpha * (refuerzo + DISCOUNT_FACTOR * siguienteRefuerzoMixto - Qmatrix[estado,action])
+            #print("Experiencia : Estado: "+str(estado)+ " ,Accion: "+str(action)+" ,Refuerzo: "+str(refuerzo)+" ,Siguiente estado: "+str(siguienteEstado)+" , Siguiente refuerzo Mixto: "+str(siguienteRefuerzoMixto)+" , Epsilon: "+str(epsilon))
+            Qmatrix[estado,action] += LEARNING_RATE * (refuerzo + DISCOUNT_FACTOR * siguienteRefuerzoMixto - Qmatrix[estado,action])
             acciones +=1
-            t += 1.0
-            alpha = math.pow(t,-0.1)
             checkBot()
+            if(epsilon > EPSILON_MIN):
+                epsilon *= EPSILON_DECAY
             if(bot.end):
                 print("Se ha encontrado el tesoro, paso: "+str(paso)+ " ,acciones tomadas: "+str(acciones))
 
-def testing():
-    clear_bot()
-    bot.x = Xinicial
-    bot.y = Yinicial
-    update_bot()
-    imprimir_mundo()
-    bot.end = False
-    while not bot.end:
+def forward():
+    final = tablaEstados[tesoro.y,tesoro.x]
+    inicial = tablaEstados[Yinicial,Xinicial]
+    primero = estado(inicial,0,None,Xinicial,Yinicial)
+    anchura = {}
+    anchura[primero.id] = primero
+    indices = []
+    indices.append(primero.id)
+    camino = []
+    c = 0
+    while(len(indices)<num_estados):
+        estoy = anchura.get(indices[c])
+        adyacentes = getAdyacentes(estoy)
+        for ady in adyacentes:
+            voy = ady
+            if(voy.id in indices):
+                voy = anchura.get(voy.id)
+            else:
+                anchura[voy.id] = voy
+                indices.append(voy.id)
+            if(mejor(estoy.coste + getCosteMapa(estoy,voy), voy.coste)):
+                voy.coste = estoy.coste + getCosteMapa(estoy,voy)
+                voy.vieneDe = estoy
+        c += 1
+
+
+    siguiente = anchura.get(final)
+    camino.append(siguiente)
+    print("El estado inicial es: "+str(inicial))
+    print("El estado final es: "+str(final))
+    while(siguiente.id != inicial):
+        siguiente = siguiente.vieneDe
+        camino.append(siguiente)
+
+    camino.reverse()
+    print("RECORRIDO FORWARD")
+    for est in camino:
+        print("El bot esta en: "+str(est.x)+"-"+str(est.y))
         clear_bot()
-        estado = getEstado()
-        bot.estados.append(estado)
-        #coger accion con mayor recompensa
-        #action = mejorAccion(estado)
-        #coger accion segun probabilidades
-        action = getAction()
-        bot.moverse(action)
-        print("se ha tomado la accion: "+str(action))
+        bot.x = est.x
+        bot.y = est.y
         update_bot()
-        checkBot()
-        if(bot.end):
-            print("TESORO ENCONTRADO!")
         imprimir_mundo()
 
-    imprimirEstadosRecorridos()
+def mejor(a,b):
+    return a<b
+
+def getCosteMapa(estoy,voy):
+    inc=[(0,-1),(1,-1),(1,0),(1,1),(0,1),(-1,1),(-1,0),(-1,-1)]
+    diferenciaX = voy.x - estoy.x
+    diferenciaY = voy.y - estoy.y
+    accion = 0
+    for acc in inc:
+        if(acc[0] == diferenciaX and acc[1] == diferenciaY):
+            accion = inc.index(acc)
+    return 1/Qmatrix[estoy.id,accion]
+
+def getAdyacentes(estadoOrigen):
+    adyacentes = []
+    x = estadoOrigen.x
+    y = estadoOrigen.y
+    inc=[(0,-1),(1,-1),(1,0),(1,1),(0,1),(-1,1),(-1,0),(-1,-1)]
+    posAcc = getPosiblesAcc(x,y)
+    for acc in posAcc:
+        x += inc[acc][0]
+        y += inc[acc][1]
+        id = tablaEstados[y,x]
+        if(id != tablaEstados[bot.y,bot.x]):
+            adyacentes.append(estado(id,99999,estadoOrigen,x,y))
+        x = estadoOrigen.x
+        y = estadoOrigen.y
+    return adyacentes
+
+
+
+
 
 num_estados = FILAS*COLUMNAS
 tablaEstados = {}
@@ -278,7 +309,6 @@ inicializar_Qmatrix()
 inicializar_mundo()
 bot = item(random.randint(0,FILAS-1),random.randint(0,COLUMNAS-1),'bot')
 tesoro = item(random.randint(0,FILAS-1),random.randint(0,COLUMNAS-1),'tesoro')
-estadoInicial = getEstado()
 Xinicial = bot.x
 Yinicial = bot.y
 update_tesoro()
@@ -288,7 +318,10 @@ bot.toString()
 tesoro.toString()
 algoritmoQLearningTraining()
 imprimirQmatrix()
-testing()
-
+clear_bot()
+bot.x = Xinicial
+bot.y = Yinicial
+update_bot()
+forward()
 
 
