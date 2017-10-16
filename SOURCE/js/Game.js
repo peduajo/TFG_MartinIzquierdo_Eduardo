@@ -228,6 +228,7 @@ AprendizajePorRefuerzo.Game.prototype = {
         var suma = 0;
         cajaProb.push(suma);
         var numR = Math.random();
+        var epsilonR = Math.random();
         var estado = this.getEstadoBot();
         var idEstado = this.tablaEstados[estado.y][estado.x];
         var posAcc = this.getPosiblesAcc(estado.x,estado.y);
@@ -238,7 +239,7 @@ AprendizajePorRefuerzo.Game.prototype = {
         for(var i=0;i<lisRec.length;i++){
             norm.push(lisRec[i]/refuerzoTotal);
         }
-        if(numR <= this.epsilon){
+        if(epsilonR <= this.epsilon){
             return posAcc[Math.floor(Math.random() * posAcc.length)];
         }
         for(var i=0;i<norm.length;i++){
