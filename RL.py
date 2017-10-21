@@ -114,7 +114,8 @@ def run():
     sleep = 0.005
     while True:
         s = Mundo.bot
-        accion = eGreedy(s)
+        #accion = eGreedy(s)
+        accion,_ = maxQ(s)
         (s, a, r, s2) = moverse(accion)
         N[s][a] += 1
         alpha = float(60)/float(59 + N[s][a])
