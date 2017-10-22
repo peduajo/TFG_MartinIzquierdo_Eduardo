@@ -34,340 +34,211 @@ AprendizajePorRefuerzo.Game.prototype = {
         this.montHieloRectangles = this.getRectanglesFromObjects(this.montanasHielo);
         this.montCespedRectangles = this.getRectanglesFromObjects(this.montanasCesped);
         this.estadoTesoro = this.getEstadoTesoro();
-        this.epsilon = 1.0;
-        this.epsilonDecay = 0.9999;
-        this.minEpsilon = 0.1;
-        this.discountFactor = 0.5;
-        this.learningRate = 0.125;
-        this.maxPasos = 5;
+        this.discountFactor = 0.9;
         this.pasos = 0;
-        this.refTesoro = 100;
-        this.refCesped = 7;
-        this.refHielo = 3;
-        this.refMontana = 4;
-        this.refAgua = 1;
-        this.refIsla = 0.5;
-        this.refMontanaHelada = 2;
+        this.refTesoro = 3;
+        this.refCesped = -0.04;
+        this.refHielo = -0.08;
+        this.refMontana = -0.12;
+        this.refAgua = -0.24;
+        this.refIsla = -0.16;
+        this.refMontanaHelada = -0.20;
         this.game.time.advancedTiming = true;
-        this.game.time.desiredFps=120;
-        this.numEstados = this.map.height * this.map.width;
-        this.inc = [[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1]];
-        this.Qmatrix = this.inicializarQmatrix();
-        this.tablaEstados = this.inicializarTablaEstados();
+        this.game.time.desiredFps=240;
+        this.acciones = ["arriba","abajo","izquierda","derecha"];
+        this.inc = {"arriba":[0,-1],"abajo":[0,1],"izquierda":[-1,0],"derecha":[1,0]};
+        this.estados = this.inicializarEstados();
+        this.Q = {};
+        this.N = {};
+        this.inicializarTablas();
         this.done = false;
-        this.test = false;
-        this.camino = [];
-        this.count = 0;
-        this.startCamino = false;
+        this.t = 1;
+        this.score = 1;
+        this.scoreAnterior = 0;
+        this.repeticiones = 0;
 
 
     },
     update : function () {
-
-        console.log("-----------------------------------------------");
-        console.log("El bot esta en: "+this.getEstadoBot().x+"-"+this.getEstadoBot().y+" y en el punto: "+this.bot.body.x+"-"+this.bot.body.y);
-        console.log("El tesoro esta en: "+this.estadoTesoro.x+"-"+this.estadoTesoro.y+" y en el punto: "+this.tesoro.body.x+"-"+this.tesoro.body.y);
-        console.log("Epsilon: "+this.epsilon);
-        if(!this.done && !this.test){
+        if(!this.done){
             var estado = this.getEstadoBot();
-            var idEstado = this.tablaEstados[estado.y][estado.x];
-            var accion = this.getAccion();
+            var accVal = this.maxQ(estado);
+            var accion = accVal[0];
             this.moverse(accion);
             this.checkBot();
             var refuerzo = this.getRefuerzoBot();
-            console.log("La accion tiene una recompensa de: "+refuerzo);
-            var siguienteEstado = this.getEstadoBot();
-            var idSiguienteEstado = this.tablaEstados[siguienteEstado.y][siguienteEstado.x];
-            var siguienteRefuerzoMixto = this.maxRefuerzo(idSiguienteEstado);
-            this.Qmatrix[idEstado][accion] += this.learningRate * (refuerzo + this.discountFactor * siguienteRefuerzoMixto - this.Qmatrix[idEstado][accion]);
-            if(this.epsilon > this.minEpsilon){
-                this.epsilon *= this.epsilonDecay;
-            }
+            this.N[estado][accion] += 1;
+            var alpha = 60/(59 + this.N[estado][accion]);
+            var proximoEstado = this.getEstadoBot();
+            var accValProx = this.maxQ(proximoEstado);
+            var inc = refuerzo + this.discountFactor * accValProx[1];
+            this.incQ(estado,accion,alpha,inc);
+            this.t += 1;
         }
-        else if(!this.test){
-            alert("Se ha encontrado el tesoro");
+        else{
+            console.log("Se ha encontrado el tesoro con resultado: "+this.score);
+            if(this.score === this.scoreAnterior){
+                this.repeticiones++;
+            }
+            else{
+                this.repeticiones = 0;
+            }
+            this.scoreAnterior = this.score;
+            this.score = 1;
+            this.t = 1.0;
             this.pasos++;
             this.bot.x = this.inicioBotX;
             this.bot.y = this.inicioBotY;
             this.done = false;
-            if(this.pasos === this.maxPasos){
-                this.descargarQmatrix();
-                this.test = true;
-            }
+        }
 
+        if(this.repeticiones === 10 && this.t === 1.0){
+            console.log(this.Q);
+            this.sleep(100);
         }
-        else if(this.test && !this.startCamino){
-            alert("Test Forward");
-            this.forward();
-            this.startCamino = true;
-        }
-        else if(this.startCamino){
-            this.wait(1000);
-            if(this.count<this.camino.length-1){
-                var est = this.camino[this.count];
-                var nextEstado = this.camino[this.count+1];
-                var acc = this.getAccionTest(est,nextEstado);
-                this.moverse(acc);
-                this.count++;
-            }
-            else{
-                alert("Fin test");
-            }
+        else if(this.repeticiones > 10){
+            this.sleep(100);
         }
     },
-    wait : function (ms) {
+    sleep : function(milliseconds) {
         var start = new Date().getTime();
-        var end = start;
-        while(end < start + ms) {
-            end = new Date().getTime();
-        }
-    },
-    getAccionTest : function (estoy,voy) {
-        var diferenciaX = voy.x - estoy.x;
-        var diferenciaY = voy.y - estoy.y;
-        for(var i=0;i<this.inc.length;i++){
-            if(this.inc[i][0] === diferenciaX && this.inc[i][1] === diferenciaY){
-               return i;
+        for (var i = 0; i < 1e7; i++) {
+            if ((new Date().getTime() - start) > milliseconds){
+                break;
             }
         }
     },
-    forward : function () {
-        var final = this.tablaEstados[this.estadoTesoro.y][this.estadoTesoro.x];
-        var estadoBot = this.getEstadoBot();
-        var inicial = this.tablaEstados[estadoBot.y][estadoBot.x];
-        var primero = {id:inicial , coste:0 , vieneDe:null , x:estadoBot.x , y:estadoBot.y};
-        var anchura = {};
-        anchura[primero.id] = primero;
-        var indices = [];
-        indices.push(primero.id);
-        var c = 0;
-        while(indices.length<this.numEstados){
-            var estoy = anchura[indices[c]];
-            var adyacentes = this.getAdyacentes(estoy);
-            for(var i=0;i<adyacentes.length;i++){
-                var voy = adyacentes[i];
-                if(indices.includes(voy.id)){
-                    voy = anchura[voy.id];
-                }
-                else{
-                    anchura[voy.id] = voy;
-                    indices.push(voy.id);
-                }
-                if(this.mejor(estoy.coste + this.getCosteMapa(estoy,voy),voy.coste)){
-                    voy.coste = estoy.coste + this.getCosteMapa(estoy,voy);
-                    voy.vieneDe = voy.vieneDe = estoy;
-                }
-            }
-            c += 1;
-
-        }
-        var siguiente = anchura[final];
-        this.camino.push(siguiente);
-        while(siguiente.id !== inicial){
-            siguiente = siguiente.vieneDe;
-            this.camino.push(siguiente);
-        }
-        this.camino.reverse();
-        
+    incQ : function (s,a,alpha,inc) {
+        this.Q[s][a] = this.Q[s][a] + alpha*(inc-this.Q[s][a]);
     },
-    getCosteMapa : function (estoy,voy) {
-        var diferenciaX = voy.x - estoy.x;
-        var diferenciaY = voy.y - estoy.y;
-        var accion = 0;
-        for(var i=0;i<this.inc.length;i++){
-            if(this.inc[i][0] === diferenciaX && this.inc[i][1] === diferenciaY){
-                accion = i;
+    maxQ : function (estado) {
+        var val = null;
+        var acc = null;
+        for(var i=0;i<this.acciones.length;i++){
+            var q = this.Q[estado][this.acciones[i]];
+            if (val === null || q > val){
+                val = q;
+                acc = this.acciones[i];
             }
         }
-        return (1/this.Qmatrix[estoy.id][accion]);
+        return [acc,val];
     },
-    getAdyacentes : function (estado) {
-        var adyacentes = [];
-        var x = estado.x;
-        var y = estado.y;
-        var posAcc = this.getPosiblesAcc(x,y);
-        for(var i=0;i<posAcc.length;i++){
-            x += this.inc[posAcc[i]][0];
-            y += this.inc[posAcc[i]][1];
-            var id = this.tablaEstados[y][x];
-            adyacentes.push({id:id , coste:99999 , vieneDe:null , x:x , y:y});
-            x = estado.x;
-            y = estado.y;
-        }
-        return adyacentes;
-    },
-    mejor : function (a,b) {
-        return a<b;
-    },
-    descargarQmatrix : function () {
-        var data = this.Qmatrix;
-        var csvContent = "data:text/csv;charset=utf-8,";
-        data.forEach(function(infoArray, index){
-
-            dataString = infoArray.join(",");
-            csvContent += index < data.length ? dataString+ "\n" : dataString;
-
-        });
-        var encodedUri = encodeURI(csvContent);
-        var link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "Qmatrix.csv");
-        link.click();
-    },
-    maxRefuerzo : function (idEstado) {
-        lisRec = [];
-        for(var i=0;i<this.inc.length;i++){
-            lisRec.push(this.Qmatrix[idEstado][i]);
-        }
-        return Math.max.apply(Math,lisRec);
-    },
-    getAccion : function () {
-        var lisRec = [];
-        var cajaProb = [];
-        var norm = [];
-        var suma = 0;
-        cajaProb.push(suma);
-        var numR = Math.random();
-        var epsilonR = Math.random();
-        var estado = this.getEstadoBot();
-        var idEstado = this.tablaEstados[estado.y][estado.x];
-        var posAcc = this.getPosiblesAcc(estado.x,estado.y);
-        for(var i=0;i<posAcc.length;i++){
-            lisRec.push(this.Qmatrix[idEstado][posAcc[i]]);
-        }
-        var refuerzoTotal = lisRec.reduce(function(a, b) { return a + b; }, 0);
-        for(var i=0;i<lisRec.length;i++){
-            norm.push(lisRec[i]/refuerzoTotal);
-        }
-        if(epsilonR <= this.epsilon){
-            return posAcc[Math.floor(Math.random() * posAcc.length)];
-        }
-        for(var i=0;i<norm.length;i++){
-            suma += norm[i];
-            cajaProb.push(suma);
-        }
-        for(var i=0;i<cajaProb.length;i++){
-            var indice = i;
-            var max = cajaProb[indice];
-            if(indice === 0){
-                var min = 0;
-            }
-            else{
-                var min = cajaProb[indice-1];
-            }
-            if(numR >= min && numR <= max){
-                return posAcc[indice-1];
-            }
-        }
-
-
-    },
-    getPosiblesAcc : function (x,y) {
+    getPosiblesAcc : function (estado) {
+        var x = estado[0];
+        var y = estado[1];
         var limDer = this.map.width-1;
         var limIzq = 0;
         var limArriba = 0;
         var limAbajo = this.map.height-1;
         if(x === limDer && y === limArriba){
-            return [4,5,6];
+            return ["abajo","izquierda"];
         }
         else if(x === limDer && y === limAbajo){
-            return [0,6,7];
+            return ["arriba","izquierda"];
         }
         else if(x === limIzq && y === limArriba){
-            return [2,3,4];
+            return ["abajo","derecha"];
         }
         else if(x === limIzq && y === limAbajo){
-            return [0,1,2];
+            return ["arriba","derecha"];
         }
         else if(x === limDer){
-            return [0,4,5,6,7];
+            return ["arriba","abajo","izquierda"];
         }
         else if(x === limIzq){
-            return [0,1,2,3,4];
+            return ["arriba","abajo","derecha"];
         }
         else if(y === limArriba){
-            return [2,3,4,5,6];
+            return ["abajo","izquierda","derecha"];
         }
         else if(y === limAbajo){
-            return [0,1,2,6,7];
+            return ["arriba","izquierda","derecha"];
         }
         else{
-            return [0,1,2,3,4,5,6,7];
+            return ["arriba","abajo","izquierda","derecha"];
         }
     },
     moverse : function (accion) {
         this.bot.body.x += this.inc[accion][0]*this.map.tileWidth;
         this.bot.body.y += this.inc[accion][1]*this.map.tileHeight;
     },
-    inicializarTablaEstados : function () {
-        var tablaEstados = [];
-        var id = 0;
-        for(var i = 0;i<this.map.height;i++){
-            var fila = [];
-            for(var j=0;j<this.map.width;j++){
-                fila.push(id);
-                id++;
+    inicializarEstados : function () {
+        var estados = [];
+        for(var j = 0; j<this.map.height; j++){
+            for(var i=0; i<this.map.width; i++){
+                estados.push([i,j]);
             }
-            tablaEstados.push(fila);
         }
-        return tablaEstados;
+        return estados;
     },
-    inicializarQmatrix : function () {
-        var Qmatrix = [];
-        for(var i = 0;i<this.numEstados;i++){
-            var fila = [];
-            for(var j=0;j<this.inc.length;j++){
-                fila.push(0.01);
+    inicializarTablas : function () {
+        for(var i=0;i<this.estados.length;i++){
+            var temp = {};
+            var tempA = {};
+            var posAcc = this.getPosiblesAcc(this.estados[i]);
+            for(var j=0;j<this.acciones.length;j++){
+                tempA[this.acciones[j]] = 0;
+                if(posAcc.includes(this.acciones[j])){
+                    temp[this.acciones[j]] = 0;
+                }
+                else{
+                    temp[this.acciones[j]] = -999;
+                }
             }
-            Qmatrix.push(fila);
+            this.Q[this.estados[i]] = temp;
+            this.N[this.estados[i]] = tempA;
         }
-        return Qmatrix;
     },
     getRefuerzoBot : function () {
+        var recompensa = null;
         if(this.done){
-            return this.refTesoro;
+            recompensa = this.refTesoro;
         }
         for(var i=0;i<this.cespedRectangles.length;i++){
             if(Phaser.Rectangle.intersects(this.bot.getBounds(), this.cespedRectangles[i])){
-                return this.refCesped;
+                recompensa = this.refCesped;
             }
         }
         for(var i=0;i<this.hieloRectangles.length;i++){
             if(Phaser.Rectangle.intersects(this.bot.getBounds(), this.hieloRectangles[i])){
-                return this.refHielo;
+                recompensa = this.refHielo;
             }
         }
         for(var i=0;i<this.aguaRectangles.length;i++){
             if(Phaser.Rectangle.intersects(this.bot.getBounds(), this.aguaRectangles[i])){
-                return this.refAgua;
+                recompensa = this.refAgua;
             }
         }
         for(var i=0;i<this.montAguaRectangles.length;i++){
             if(Phaser.Rectangle.intersects(this.bot.getBounds(), this.montAguaRectangles[i])){
-                return this.refIsla;
+                recompensa = this.refIsla;
             }
         }
         for(var i=0;i<this.montHieloRectangles.length;i++){
             if(Phaser.Rectangle.intersects(this.bot.getBounds(), this.montHieloRectangles[i])){
-                return this.refMontanaHelada;
+                recompensa = this.refMontanaHelada;
             }
         }
         for(var i=0;i<this.montCespedRectangles.length;i++){
             if(Phaser.Rectangle.intersects(this.bot.getBounds(), this.montCespedRectangles[i])){
-                return this.refMontana;
+                recompensa = this.refMontana;
             }
         }
+        this.score += recompensa;
+        return recompensa;
     },
     checkBot : function () {
-        if(this.getEstadoBot() === this.estadoTesoro){
+        if(this.getEstadoBot()[0] === this.estadoTesoro[0] && this.getEstadoBot()[1] === this.estadoTesoro[1]){
             this.done = true;
         }
     },
     getEstadoBot: function () {
-        return this.map.getTileWorldXY(this.bot.body.x,this.bot.body.y,this.map.tileWidth,this.map.tileHeight,this.backgroundlayer);
+        var tileB = this.map.getTileWorldXY(this.bot.body.x,this.bot.body.y,this.map.tileWidth,this.map.tileHeight,this.backgroundlayer);
+        return [tileB.x,tileB.y];
     },
     getEstadoTesoro : function () {
-        return this.map.getTileWorldXY(this.tesoro.body.x,this.tesoro.body.y,this.map.tileWidth,this.map.tileHeight,this.backgroundlayer);
+        var tileT = this.map.getTileWorldXY(this.tesoro.body.x,this.tesoro.body.y,this.map.tileWidth,this.map.tileHeight,this.backgroundlayer);
+        return [tileT.x,tileT.y];
     },
     ajustarPunto : function (eje) {
         if(eje === "x"){
