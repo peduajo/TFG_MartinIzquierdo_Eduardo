@@ -56,63 +56,69 @@ AprendizajePorRefuerzo.Game.prototype = {
         console.log("El bot empieza en: "+this.getEstadoBot()[0]+"-"+this.getEstadoBot()[1]);
         console.log("El tesoro está en: "+this.estadoTesoro[0]+"-"+this.estadoTesoro[1]);
         this.difQ = 999;
-        this.difQmin = Math.pow(10,-9);
+        this.difQmin = Math.pow(10,-11);
         this.circulos = {};
         this.mejorValEstados = {};
         this.mejorValEstadosProx = {};
         this.mostrarCirculos = false;
-
+        this.parar = false;
 
     },
     update : function () {
-        console.log("----------------------------");
-        console.log(this.time.fps);
-        if(this.mostrarCirculos && this.t === 1){
-            this.crearCirculos();
-            this.ajustarCirculos();
-        }
-        else if((this.mostrarCirculos && this.t === 60) || (this.done && this.pasos>0)){
-            this.destruirCirculos();
-            this.mostrarCirculos = false;
-        }
-        if(!this.done && this.iteraciones < 1000.0){
-            var estado = this.getEstadoBot();
-            var accVal = this.maxQ(estado);
-            var accion = accVal[0];
-            this.moverse(accion);
-            this.checkBot();
-            var refuerzo = this.getRefuerzoBot();
-            this.N[estado][accion] += 1;
-            var alpha = 60/(59 + this.N[estado][accion]);
-            var proximoEstado = this.getEstadoBot();
-            var accValProx = this.maxQ(proximoEstado);
-            var inc = refuerzo + this.discountFactor * accValProx[1];
-            this.mejorValEstados = this.mejorValoracion();
-            this.incQ(estado,accion,alpha,inc);
-            this.mejorValEstadosProx = this.mejorValoracion();
-            this.difQ = this.difValoraciones();
-            this.iteraciones += 1;
-            console.log("el diferencial de Q es: "+this.difQ+" y las iteraciones de este episodio son: "+this.t);
+        if(!this.parar){
+            console.log("----------------------------");
+            console.log(this.time.fps);
+            if(this.mostrarCirculos && this.t === 1){
+                this.crearCirculos();
+                this.ajustarCirculos();
+            }
+            else if((this.mostrarCirculos && this.t === 60) || (this.done && this.pasos>0)){
+                this.destruirCirculos();
+                this.mostrarCirculos = false;
+            }
+            if(!this.done && this.iteraciones < 1000.0){
+                var estado = this.getEstadoBot();
+                var accVal = this.maxQ(estado);
+                var accion = accVal[0];
+                this.moverse(accion);
+                this.checkBot();
+                var refuerzo = this.getRefuerzoBot();
+                this.N[estado][accion] += 1;
+                var alpha = 60/(59 + this.N[estado][accion]);
+                var proximoEstado = this.getEstadoBot();
+                var accValProx = this.maxQ(proximoEstado);
+                var inc = refuerzo + this.discountFactor * accValProx[1];
+                this.mejorValEstados = this.mejorValoracion();
+                this.incQ(estado,accion,alpha,inc);
+                this.mejorValEstadosProx = this.mejorValoracion();
+                this.difQ = this.difValoraciones();
+                this.iteraciones += 1;
+                console.log("el diferencial de Q es: "+this.difQ+" y las iteraciones de este episodio son: "+this.t);
+
+            }
+            else if(!this.mostrarCirculos){
+                console.log("Se ha encontrado el tesoro con resultado: "+this.score);
+                this.mostrarCirculos = true;
+                this.score = 1;
+                this.iteraciones = 0;
+                this.t = 0;
+                this.pasos++;
+                this.spriteBot.x = this.ajustarPunto("x");
+                this.spriteBot.y = this.ajustarPunto("y");
+                this.done = false;
+            }
+
+            if(this.difQ < this.difQmin && this.pasos > 100){
+                //this.spriteBot.visible = true;
+                this.parar = true;
+                this.sleep(100);
+            }
+            this.t += 1;
 
         }
-        else if(!this.mostrarCirculos){
-            console.log("Se ha encontrado el tesoro con resultado: "+this.score);
-            this.mostrarCirculos = true;
-            this.score = 1;
-            this.iteraciones = 0;
-            this.t = 0;
-            this.pasos++;
-            this.spriteBot.x = this.ajustarPunto("x");
-            this.spriteBot.y = this.ajustarPunto("y");
-            this.done = false;
+        else{
+            alert("Ha acabado el entrenamiento");
         }
-
-        if(this.difQ < this.difQmin && this.pasos > 100){
-            //this.spriteBot.visible = true;
-            this.sleep(100);
-        }
-        this.t += 1;
-
 
     },
     destruirCirculos : function () {
