@@ -8,18 +8,17 @@ AprendizajePorRefuerzo.Game.prototype = {
         this.map.addTilesetImage('tiles2','gameTiles');
         this.backgroundlayer = this.map.createLayer('backgroundLayer');
         this.backgroundlayer.resizeWorld();
-        this.inicioBotX = this.ajustarPunto("x");
-        this.inicioBotY = this.ajustarPunto("y");
-        this.bot = this.game.add.tileSprite(this.inicioBotX,this.inicioBotY,16,16,'bot');
-        this.bot.anchor.setTo(0.5);
-        this.bot.scale.setTo(0.8);
+        this.spriteBot = this.game.add.tileSprite(this.ajustarPunto("x"),this.ajustarPunto("y"),16,16,'bot');
+        this.spriteBot.anchor.setTo(0.5);
+        this.spriteBot.scale.setTo(0.8);
+        //this.spriteBot.visible = false;
         this.inicioTesoroX = this.ajustarPunto("x");
         this.inicioTesoroY = this.ajustarPunto("y");
         this.tesoro = this.game.add.tileSprite(this.inicioTesoroX,this.inicioTesoroY,16,16,'tesoro');
         this.tesoro.anchor.setTo(0.5);
         this.tesoro.scale.setTo(0.8);
-        this.game.physics.enable([this.bot,this.tesoro],Phaser.Physics.ARCADE);
-        this.bot.body.collideWorldBounds = true;
+        this.game.physics.enable([this.spriteBot,this.tesoro],Phaser.Physics.ARCADE);
+        this.spriteBot.body.collideWorldBounds = true;
         this.tesoro.body.collideWorldBounds = true;
         this.cesped = this.findObjectsByType('grass',this.map);
         this.hielo = this.findObjectsByType('ice',this.map);
@@ -44,7 +43,6 @@ AprendizajePorRefuerzo.Game.prototype = {
         this.refIsla = -0.16;
         this.refMontanaHelada = -0.20;
         this.game.time.advancedTiming = true;
-        this.game.time.desiredFps=240;
         this.acciones = ["arriba","abajo","izquierda","derecha"];
         this.inc = {"arriba":[0,-1],"abajo":[0,1],"izquierda":[-1,0],"derecha":[1,0]};
         this.estados = this.inicializarEstados();
@@ -52,15 +50,32 @@ AprendizajePorRefuerzo.Game.prototype = {
         this.N = {};
         this.inicializarTablas();
         this.done = false;
-        this.t = 1;
+        this.iteraciones = 0;
+        this.t = 0;
         this.score = 1;
-        this.scoreAnterior = 0;
-        this.repeticiones = 0;
+        console.log("El bot empieza en: "+this.getEstadoBot()[0]+"-"+this.getEstadoBot()[1]);
+        console.log("El tesoro está en: "+this.estadoTesoro[0]+"-"+this.estadoTesoro[1]);
+        this.difQ = 999;
+        this.difQmin = Math.pow(10,-9);
+        this.circulos = {};
+        this.mejorValEstados = {};
+        this.mejorValEstadosProx = {};
+        this.mostrarCirculos = false;
 
 
     },
     update : function () {
-        if(!this.done){
+        console.log("----------------------------");
+        console.log(this.time.fps);
+        if(this.mostrarCirculos && this.t === 1){
+            this.crearCirculos();
+            this.ajustarCirculos();
+        }
+        else if((this.mostrarCirculos && this.t === 60) || (this.done && this.pasos>0)){
+            this.destruirCirculos();
+            this.mostrarCirculos = false;
+        }
+        if(!this.done && this.iteraciones < 1000.0){
             var estado = this.getEstadoBot();
             var accVal = this.maxQ(estado);
             var accion = accVal[0];
@@ -72,33 +87,75 @@ AprendizajePorRefuerzo.Game.prototype = {
             var proximoEstado = this.getEstadoBot();
             var accValProx = this.maxQ(proximoEstado);
             var inc = refuerzo + this.discountFactor * accValProx[1];
+            this.mejorValEstados = this.mejorValoracion();
             this.incQ(estado,accion,alpha,inc);
-            this.t += 1;
+            this.mejorValEstadosProx = this.mejorValoracion();
+            this.difQ = this.difValoraciones();
+            this.iteraciones += 1;
+            console.log("el diferencial de Q es: "+this.difQ+" y las iteraciones de este episodio son: "+this.t);
+
         }
-        else{
+        else if(!this.mostrarCirculos){
             console.log("Se ha encontrado el tesoro con resultado: "+this.score);
-            if(this.score === this.scoreAnterior){
-                this.repeticiones++;
-            }
-            else{
-                this.repeticiones = 0;
-            }
-            this.scoreAnterior = this.score;
+            this.mostrarCirculos = true;
             this.score = 1;
-            this.t = 1.0;
+            this.iteraciones = 0;
+            this.t = 0;
             this.pasos++;
-            this.bot.x = this.inicioBotX;
-            this.bot.y = this.inicioBotY;
+            this.spriteBot.x = this.ajustarPunto("x");
+            this.spriteBot.y = this.ajustarPunto("y");
             this.done = false;
         }
 
-        if(this.repeticiones === 10 && this.t === 1.0){
-            console.log(this.Q);
+        if(this.difQ < this.difQmin && this.pasos > 100){
+            //this.spriteBot.visible = true;
             this.sleep(100);
         }
-        else if(this.repeticiones > 10){
-            this.sleep(100);
+        this.t += 1;
+
+
+    },
+    destruirCirculos : function () {
+        for(var i=0;i<this.estados.length;i++){
+            this.circulos[this.estados[i]].destroy();
         }
+    },
+    ajustarCirculos : function () {
+        for(var i=0;i<this.estados.length;i++){
+            var circulo = this.circulos[this.estados[i]];
+            var maxValEst = this.mejorValEstados[this.estados[i]];
+            if(maxValEst !== 0.0){
+                var escala = 0.05/Math.abs(maxValEst);
+                circulo.scale.setTo(escala);
+            }
+        }
+    },
+    crearCirculos : function () {
+        for(var j=this.map.tileHeight/2; j<this.map.heightInPixels;j+=this.map.tileHeight){
+            for(var i=this.map.tileWidth/2; i<this.map.widthInPixels;i+=this.map.tileWidth){
+                var circulo = this.game.add.tileSprite(i,j,16,16,'circuloAmarillo');
+                circulo.alpha = 0.5;
+                circulo.anchor.setTo(0.5);
+                circulo.scale.setTo(0.1);
+                var estadoCirculo = this.map.getTileWorldXY(i,j,this.map.tileWidth,this.map.tileHeight,this.backgroundlayer);
+                this.circulos[[estadoCirculo.x,estadoCirculo.y]] = circulo;
+            }
+        }
+    },
+    difValoraciones : function () {
+        var diferencial = [];
+        for(var i=0;i<this.estados.length;i++){
+            diferencial.push(Math.abs(this.mejorValEstados[this.estados[i]]-this.mejorValEstadosProx[this.estados[i]]));
+        }
+        return Math.max.apply(null, diferencial);
+    },
+    mejorValoracion : function () {
+        var mejorValEstados = {};
+        for(var i=0;i<this.estados.length;i++){
+            var valAcc = this.maxQ(this.estados[i]);
+            mejorValEstados[this.estados[i]] = valAcc[1];
+        }
+        return mejorValEstados;
     },
     sleep : function(milliseconds) {
         var start = new Date().getTime();
@@ -159,8 +216,8 @@ AprendizajePorRefuerzo.Game.prototype = {
         }
     },
     moverse : function (accion) {
-        this.bot.body.x += this.inc[accion][0]*this.map.tileWidth;
-        this.bot.body.y += this.inc[accion][1]*this.map.tileHeight;
+        this.spriteBot.body.x += this.inc[accion][0]*this.map.tileWidth;
+        this.spriteBot.body.y += this.inc[accion][1]*this.map.tileHeight;
     },
     inicializarEstados : function () {
         var estados = [];
@@ -195,32 +252,32 @@ AprendizajePorRefuerzo.Game.prototype = {
             recompensa = this.refTesoro;
         }
         for(var i=0;i<this.cespedRectangles.length;i++){
-            if(Phaser.Rectangle.intersects(this.bot.getBounds(), this.cespedRectangles[i])){
+            if(Phaser.Rectangle.intersects(this.spriteBot.getBounds(), this.cespedRectangles[i])){
                 recompensa = this.refCesped;
             }
         }
         for(var i=0;i<this.hieloRectangles.length;i++){
-            if(Phaser.Rectangle.intersects(this.bot.getBounds(), this.hieloRectangles[i])){
+            if(Phaser.Rectangle.intersects(this.spriteBot.getBounds(), this.hieloRectangles[i])){
                 recompensa = this.refHielo;
             }
         }
         for(var i=0;i<this.aguaRectangles.length;i++){
-            if(Phaser.Rectangle.intersects(this.bot.getBounds(), this.aguaRectangles[i])){
+            if(Phaser.Rectangle.intersects(this.spriteBot.getBounds(), this.aguaRectangles[i])){
                 recompensa = this.refAgua;
             }
         }
         for(var i=0;i<this.montAguaRectangles.length;i++){
-            if(Phaser.Rectangle.intersects(this.bot.getBounds(), this.montAguaRectangles[i])){
+            if(Phaser.Rectangle.intersects(this.spriteBot.getBounds(), this.montAguaRectangles[i])){
                 recompensa = this.refIsla;
             }
         }
         for(var i=0;i<this.montHieloRectangles.length;i++){
-            if(Phaser.Rectangle.intersects(this.bot.getBounds(), this.montHieloRectangles[i])){
+            if(Phaser.Rectangle.intersects(this.spriteBot.getBounds(), this.montHieloRectangles[i])){
                 recompensa = this.refMontanaHelada;
             }
         }
         for(var i=0;i<this.montCespedRectangles.length;i++){
-            if(Phaser.Rectangle.intersects(this.bot.getBounds(), this.montCespedRectangles[i])){
+            if(Phaser.Rectangle.intersects(this.spriteBot.getBounds(), this.montCespedRectangles[i])){
                 recompensa = this.refMontana;
             }
         }
@@ -233,7 +290,7 @@ AprendizajePorRefuerzo.Game.prototype = {
         }
     },
     getEstadoBot: function () {
-        var tileB = this.map.getTileWorldXY(this.bot.body.x,this.bot.body.y,this.map.tileWidth,this.map.tileHeight,this.backgroundlayer);
+        var tileB = this.map.getTileWorldXY(this.spriteBot.body.x,this.spriteBot.body.y,this.map.tileWidth,this.map.tileHeight,this.backgroundlayer);
         return [tileB.x,tileB.y];
     },
     getEstadoTesoro : function () {
@@ -249,7 +306,6 @@ AprendizajePorRefuerzo.Game.prototype = {
             else{
                 var x = this.map.widthInPixels - (this.map.tileWidth/2);
             }
-            console.log("El randomX era: "+rx+" y se ha ajustado a: "+x);
             return x;
         }
         else{
@@ -260,7 +316,6 @@ AprendizajePorRefuerzo.Game.prototype = {
             else{
                 var y = this.map.heightInPixels - (this.map.tileHeight/2);
             }
-            console.log("El randomY era: "+ry+" y se ha ajustado a: "+y);
             return y;
         }
     },

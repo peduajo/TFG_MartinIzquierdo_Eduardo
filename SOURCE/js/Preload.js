@@ -8,6 +8,7 @@ AprendizajePorRefuerzo.Preload.prototype = {
         this.load.image('gameTiles','assets/images/tiles2.png');
         this.load.image('tesoro','assets/images/tesoro.png');
         this.load.image('bot','assets/images/bot.png');
+        this.load.image('circuloAmarillo','assets/images/circuloAmarillo.png');
     },
     create : function () {
         this.game.stage.backgroundColor = '#fff';
