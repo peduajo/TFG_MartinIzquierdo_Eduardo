@@ -2,18 +2,56 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>TFG</title>
+    <title>VAR</title>
     <script type="text/javascript" src="js/phaser.js"></script>
     <script type="text/javascript" src="js/Preload.js"></script>
     <script type="text/javascript" src="js/Game.js"></script>
-    <style>
-        body{
-            padding: 0px;
-            margin: 0px;
-        }
-    </style>
 </head>
 <body>
-    <script src="js/main.js"></script>
+    <h1>Visualización de Aprendizaje por Refuerzo</h1>
+    <div class="juego">
+        <script src="js/main.js"></script>
+    </div>
+    <form>
+        <label>Gamma: </label>
+        <input type="text" id="gamma">
+        <label>Iteraciones para mostrar valoraciones: </label>
+        <input type="text" id="tiempo">
+        <label>Iteraciones máximas por episodio: </label>
+        <input type="text" id="tiempoEpisodio">
+        <h3>Recompensas</h3>
+        <label>Tesoro: </label>
+        <input type="text" id="tesoro">
+        <label>Cesped: </label>
+        <input type="text" id="cesped">
+        <label>Agua: </label>
+        <input type="text" id="agua">
+        <br />
+        <br />
+        <label>Hielo: </label>
+        <input type="text" id="hielo">
+        <label>Isla: </label>
+        <input type="text" id="isla">
+        <label>Montaña: </label>
+        <input type="text" id="montana">
+        <label>Montaña de hielo: </label>
+        <input type="text" id="montanaH">
+        <br />
+        <br />
+        <input type="button" id="entrenarBtn" value="Entrenar/Continuar" onclick="empezarJuego()">
+        <input type="button" id="stopBtn" value="Parar" onclick="pararJuego()">
+        <input type="button" id="reiniciarBtn" value="Reiniciar" onclick="reiniciarJuego()">
+        <input type="button" id="valoresBtn" value="Valores por defecto" onclick="cargarValores()">
+        <br />
+        <br />
+        <label>Estado : </label>
+        <label id="estado" style="color: red">PARADO</label>
+
+
+    </form>
+
+
+
+
 </body>
 </html>
