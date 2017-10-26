@@ -6,52 +6,79 @@
     <script type="text/javascript" src="js/phaser.js"></script>
     <script type="text/javascript" src="js/Preload.js"></script>
     <script type="text/javascript" src="js/Game.js"></script>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <script type="text/js" src="js/bootstrap.min.js"></script>
 </head>
 <body>
-    <h1>Visualización de Aprendizaje por Refuerzo</h1>
-    <div class="juego">
-        <script src="js/main.js"></script>
+    <div class="container">
+        <div class="row" style="background-color: #1b6d85;color: white;">
+            <h1 align="center">Visualización de Aprendizaje por Refuerzo</h1>
+        </div>
+        <div class="row">
+            <h2>Datos del Aprendizaje</h2>
+            <br>
+            <div class="col-md-6" align="center">
+                <label>Gamma: </label>
+                <input size="5" type="text" id="gamma">
+            </div>
+            <div class="col-md-6">
+                <label>Iteraciones máximas por episodio: </label>
+                <input size="5" type="text" id="tiempoEpisodio">
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <h2>Recompensas</h2>
+            <br>
+            <div class="row">
+                <div class="col-md-2">
+                    <label>Tesoro: </label>
+                    <input size="5" type="text" id="tesoro">
+                </div>
+                <div class="col-md-2">
+                    <label>Cesped: </label>
+                    <input size="5" type="text" id="cesped">
+                </div>
+                <div class="col-md-2">
+                    <label>Agua: </label>
+                    <input size="5" type="text" id="agua">
+                </div>
+                <div class="col-md-2">
+                    <label>Hielo: </label>
+                    <input size="5" type="text" id="hielo">
+                </div>
+                <div class="col-md-2">
+                    <label>Isla: </label>
+                    <input size="5" type="text" id="isla">
+                </div>
+                <div class="col-md-2">
+                    <label>Montaña: </label>
+                    <input size="5" type="text" id="montana">
+                </div>
+            </div>
+            <br>
+            <div class="row">
+                <div class="col-md-12">
+                    <label>Montaña Helada: </label>
+                    <input size="5" type="text" id="montanaH">
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="row" align="center">
+            <input type="button" id="entrenarBtn" value="Entrenar/Continuar" onclick="empezarJuego()">
+            <input type="button" id="stopBtn" value="Parar" onclick="pararJuego()">
+            <input type="button" id="reiniciarBtn" value="Reiniciar" onclick="reiniciarJuego()">
+            <input type="button" id="valoresBtn" value="Valores por defecto" onclick="cargarValores()">
+            <input type="button" id="circulos" value="Mostrar valoraciones" onclick="mostrarCirculos()">
+            <input type="button" id="borrarCir" value="Quitar valoraciones" onclick="quitarCirculos()">
+            <label>Estado : </label>
+            <label id="estado" style="color: red">PARADO</label>
+        </div>
+        <hr>
+        <div class="row" align="center">
+            <script src="js/main.js"></script>
+        </div>
     </div>
-    <form>
-        <label>Gamma: </label>
-        <input type="text" id="gamma">
-        <label>Iteraciones para mostrar valoraciones: </label>
-        <input type="text" id="tiempo">
-        <label>Iteraciones máximas por episodio: </label>
-        <input type="text" id="tiempoEpisodio">
-        <h3>Recompensas</h3>
-        <label>Tesoro: </label>
-        <input type="text" id="tesoro">
-        <label>Cesped: </label>
-        <input type="text" id="cesped">
-        <label>Agua: </label>
-        <input type="text" id="agua">
-        <br />
-        <br />
-        <label>Hielo: </label>
-        <input type="text" id="hielo">
-        <label>Isla: </label>
-        <input type="text" id="isla">
-        <label>Montaña: </label>
-        <input type="text" id="montana">
-        <label>Montaña de hielo: </label>
-        <input type="text" id="montanaH">
-        <br />
-        <br />
-        <input type="button" id="entrenarBtn" value="Entrenar/Continuar" onclick="empezarJuego()">
-        <input type="button" id="stopBtn" value="Parar" onclick="pararJuego()">
-        <input type="button" id="reiniciarBtn" value="Reiniciar" onclick="reiniciarJuego()">
-        <input type="button" id="valoresBtn" value="Valores por defecto" onclick="cargarValores()">
-        <br />
-        <br />
-        <label>Estado : </label>
-        <label id="estado" style="color: red">PARADO</label>
-
-
-    </form>
-
-
-
-
 </body>
 </html>

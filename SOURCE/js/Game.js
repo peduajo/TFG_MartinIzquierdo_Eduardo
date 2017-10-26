@@ -1,11 +1,11 @@
 var AprendizajePorRefuerzo = AprendizajePorRefuerzo || {};
 
 var parar = true;
-var discountFactor = null,refTesoro = null,refCesped = null,refHielo = null,refMontana = null,refAgua = null,refIsla = null,refMontanaHelada = null,iteracionesCirculos = null,iteracionesMaximas = null;
+var mostrar = false;
+var discountFactor = null,refTesoro = null,refCesped = null,refHielo = null,refMontana = null,refAgua = null,refIsla = null,refMontanaHelada = null,iteracionesMaximas = null;
 function empezarJuego() {
     parar = false;
     discountFactor = parseFloat(document.getElementById("gamma").value);
-    iteracionesCirculos = parseInt(document.getElementById("tiempo").value);
     refTesoro = parseFloat(document.getElementById("tesoro").value);
     refCesped = parseFloat(document.getElementById("cesped").value);
     refHielo = parseFloat(document.getElementById("hielo").value);
@@ -33,7 +33,6 @@ function reiniciarJuego(){
 }
 function cargarValores() {
     document.getElementById("gamma").value = "0.9";
-    document.getElementById("tiempo").value = "60";
     document.getElementById("tiempoEpisodio").value = "1000";
     document.getElementById("tesoro").value = "3";
     document.getElementById("cesped").value = "-0.04";
@@ -42,6 +41,16 @@ function cargarValores() {
     document.getElementById("agua").value = "-0.24";
     document.getElementById("isla").value = "-0.16";
     document.getElementById("montanaH").value = "-0.20";
+}
+function  mostrarCirculos() {
+    if(!mostrar){
+        mostrar = true;
+    }
+}
+function  quitarCirculos() {
+    if(mostrar){
+        mostrar = false;
+    }
 }
 AprendizajePorRefuerzo.Game = function () {};
 
@@ -104,21 +113,26 @@ AprendizajePorRefuerzo.Game.prototype = {
         this.circulos = {};
         this.mejorValEstados = {};
         this.mejorValEstadosProx = {};
-        this.mostrarCirculos = false;
         this.repeticiones = 0;
+        this.creados = false;
     },
     update : function () {
+        if(mostrar){
+            if(!this.creados){
+                this.crearCirculos();
+                this.creados = true;
+            }
+            this.ajustarCirculos();
+        }
+        else if(this.creados){
+            this.destruirCirculos();
+            this.creados = false;
+        }
         if(!parar){
             console.log("----------------------------");
-            console.log(this.time.fps);
-            if(this.mostrarCirculos && this.iteraciones === 1){
-                this.crearCirculos();
-                this.ajustarCirculos();
-            }
-            else if((this.mostrarCirculos && this.iteraciones === iteracionesCirculos) || (this.done && this.pasos>0)){
-                this.destruirCirculos();
-                this.mostrarCirculos = false;
-            }
+            console.log("fps: "+this.time.fps);
+            console.log("repeticiones: "+this.repeticiones);
+            console.log("pasos: "+this.pasos);
             if(!this.done && this.iteraciones < iteracionesMaximas){
                 var estado = this.getEstadoBot();
                 var accVal = this.maxQ(estado);
@@ -139,9 +153,8 @@ AprendizajePorRefuerzo.Game.prototype = {
                 console.log("el diferencial de Q es: "+this.difQ+" y las iteraciones de este episodio son: "+this.iteraciones);
 
             }
-            else if(!this.mostrarCirculos){
-                console.log("Se ha encontrado el tesoro con resultado: "+this.score);
-                this.mostrarCirculos = true;
+            else {
+                console.log("Paso: "+this.pasos+"acabado con resultado: "+this.score);
                 this.score = 1;
                 this.iteraciones = 0;
                 this.pasos++;
@@ -158,12 +171,10 @@ AprendizajePorRefuerzo.Game.prototype = {
             }
 
             if(this.repeticiones === 20){
-                console.log("estado:entrenado");
-                this.repeticiones = 0;
-                parar = true;
                 var labelEstado = document.getElementById("estado");
                 labelEstado.innerHTML = "ENTRENADO";
                 labelEstado.style.color = "green";
+                parar = true;
             }
 
         }
