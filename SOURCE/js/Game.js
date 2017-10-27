@@ -2,7 +2,7 @@ var AprendizajePorRefuerzo = AprendizajePorRefuerzo || {};
 
 var parar = true;
 var mostrar = false;
-var discountFactor = null,refTesoro = null,refCesped = null,refHielo = null,refMontana = null,refAgua = null,refIsla = null,refMontanaHelada = null,iteracionesMaximas = null;
+var discountFactor = null,refTesoro = null,refCesped = null,refHielo = null,refMontana = null,refAgua = null,refIsla = null,refMontanaHelada = null,iteracionesMaximas = null,maxPasos = null;
 function empezarJuego() {
     parar = false;
     discountFactor = parseFloat(document.getElementById("gamma").value);
@@ -14,6 +14,7 @@ function empezarJuego() {
     refIsla = parseFloat(document.getElementById("isla").value);
     refMontanaHelada = parseFloat(document.getElementById("montanaH").value);
     iteracionesMaximas = parseInt(document.getElementById("tiempoEpisodio").value);
+    maxPasos = parseInt(document.getElementById("maxPasos").value);
     var labelEstado = document.getElementById("estado");
     labelEstado.innerHTML = "ENTRENANDO";
     labelEstado.style.color = "blue";
@@ -41,6 +42,7 @@ function cargarValores() {
     document.getElementById("agua").value = "-0.24";
     document.getElementById("isla").value = "-0.16";
     document.getElementById("montanaH").value = "-0.20";
+    document.getElementById("maxPasos").value = "200";
 }
 function  mostrarCirculos() {
     if(!mostrar){
@@ -170,7 +172,7 @@ AprendizajePorRefuerzo.Game.prototype = {
                 this.repeticiones = 0;
             }
 
-            if(this.repeticiones === 20){
+            if(this.repeticiones === 20 || this.pasos === maxPasos){
                 var labelEstado = document.getElementById("estado");
                 labelEstado.innerHTML = "ENTRENADO";
                 labelEstado.style.color = "green";
