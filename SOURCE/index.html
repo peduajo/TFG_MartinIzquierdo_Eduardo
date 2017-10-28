@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>VAR</title>
@@ -15,73 +15,82 @@
             <h1 align="center">Visualización de Aprendizaje por Refuerzo</h1>
         </div>
         <div class="row">
-            <h2>Datos del Aprendizaje</h2>
-            <br>
-            <div class="col-md-4" align="center">
-                <label>Gamma: </label>
-                <input size="5" type="text" id="gamma">
-            </div>
-            <div class="col-md-4">
-                <label>Episodios máximos: </label>
-                <input size="5" type="text" id="maxPasos">
-            </div>
-            <div class="col-md-4">
-                <label>Iteraciones máximas por episodio: </label>
-                <input size="5" type="text" id="tiempoEpisodio">
-            </div>
-        </div>
-        <hr>
-        <div class="row">
-            <h2>Recompensas</h2>
-            <br>
-            <div class="row">
-                <div class="col-md-2">
-                    <label>Tesoro: </label>
-                    <input size="5" type="text" id="tesoro">
+            <div class="col-md-6">
+                <br>
+                <div class="row" align="center">
+                    <input type="button" id="entrenarBtn" value="Entrenar" onclick="empezarJuego()">
+                    <input type="button" id="stopBtn" value="Parar" onclick="pararJuego()">
+                    <input type="button" id="reiniciarBtn" value="Reiniciar" onclick="reiniciarJuego()">
+                    <input type="button" id="circulos" value="Mostrar/Quitar valoraciones" onclick="circulos()">
                 </div>
-                <div class="col-md-2">
-                    <label>Cesped: </label>
-                    <input size="5" type="text" id="cesped">
+                <br>
+                <div class="row" align="center">
+                    <label>Estado : </label>
+                    <label id="estado" style="color: red">PARADO</label>
+                    <br>
+                    <br>
+                    <div class="row" id="game">
+                        <script src="js/main.js"></script>
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    <label>Agua: </label>
-                    <input size="5" type="text" id="agua">
-                </div>
-                <div class="col-md-2">
-                    <label>Hielo: </label>
-                    <input size="5" type="text" id="hielo">
-                </div>
-                <div class="col-md-2">
-                    <label>Isla: </label>
-                    <input size="5" type="text" id="isla">
-                </div>
-                <div class="col-md-2">
-                    <label>Montaña: </label>
-                    <input size="5" type="text" id="montana">
+                <br>
+                <div class="row">
+                    <div class="col-md-3"></div>
+                    <div class="col-md-3">
+                        ARRIBA: <label id="valArriba">--</label><br>
+                        ABAJO: <label id="valAbajo">--</label><br>
+                    </div>
+                    <div class="col-md-6">
+                        IZQUIERDA: <label id="valIzquierda">--</label><br>
+                        DERECHA: <label id="valDerecha">--</label><br>
+                    </div>
                 </div>
             </div>
-            <br>
-            <div class="row">
-                <div class="col-md-12">
-                    <label>Montaña Helada: </label>
-                    <input size="5" type="text" id="montanaH">
+            <div class="col-md-6">
+                <div class="row">
+                    <h2>Datos del Aprendizaje</h2>
+                    <br>
+                    <form>
+                        Gamma:<br>
+                        <input type="text" id="gamma"><br>
+                        Episodios máximos:<br>
+                        <input type="text" id="maxPasos"><br>
+                        Iteraciones máximas por episódio:<br>
+                        <input type="text" id="tiempoEpisodio"><br>
+                    </form>
+                </div>
+                <div class="row">
+                    <h2>Recompensas</h2>
+                    <br>
+                    <div class="col-md-6">
+                        <form>
+                            Tesoro:<br>
+                            <input type="text" id="tesoro"><br>
+                            Cesped:<br>
+                            <input type="text" id="cesped"><br>
+                            Agua:<br>
+                            <input type="text" id="agua"><br>
+                            Hielo:<br>
+                            <input type="text" id="hielo">
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <form>
+                            Isla:<br>
+                            <input type="text" id="isla"><br>
+                            Montaña:<br>
+                            <input type="text" id="montana"><br>
+                            Montaña de hielo:<br>
+                            <input type="text" id="montanaH"><br>
+                        </form>
+                    </div>
+                </div>
+                <br>
+                <br>
+                <div class="row">
+                    <input type="button" id="valoresBtn" value="Valores por defecto" onclick="cargarValores()">
                 </div>
             </div>
-        </div>
-        <hr>
-        <div class="row" align="center">
-            <input type="button" id="entrenarBtn" value="Entrenar/Continuar" onclick="empezarJuego()">
-            <input type="button" id="stopBtn" value="Parar" onclick="pararJuego()">
-            <input type="button" id="reiniciarBtn" value="Reiniciar" onclick="reiniciarJuego()">
-            <input type="button" id="valoresBtn" value="Valores por defecto" onclick="cargarValores()">
-            <input type="button" id="circulos" value="Mostrar valoraciones" onclick="mostrarCirculos()">
-            <input type="button" id="borrarCir" value="Quitar valoraciones" onclick="quitarCirculos()">
-            <label>Estado : </label>
-            <label id="estado" style="color: red">PARADO</label>
-        </div>
-        <hr>
-        <div class="row" align="center">
-            <script src="js/main.js"></script>
         </div>
     </div>
 </body>
