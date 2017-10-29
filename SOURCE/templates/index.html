@@ -3,16 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <title>VAR</title>
-    <script type="text/javascript" src="js/phaser.js"></script>
-    <script type="text/javascript" src="js/Preload.js"></script>
-    <script type="text/javascript" src="js/Game.js"></script>
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <script type="text/js" src="js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename='js/lib/jquery-3.2.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lib/phaser.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/Preload.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/Game.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lib/bootstrap.min.css') }}">
+    <script src="{{ url_for('static', filename='js/lib/bootstrap.min.js') }}"></script>
 </head>
 <body>
     <div class="container">
         <div class="row" style="background-color: #1b6d85;color: white;">
             <h1 align="center">Visualización de Aprendizaje por Refuerzo</h1>
+        </div>
+        <div class="row" align="right">
+            <button style="color: black" onclick="location.href='/logout'">Cerrar Sesión</button>
         </div>
         <div class="row">
             <div class="col-md-6">
@@ -30,7 +34,7 @@
                     <br>
                     <br>
                     <div class="row" id="game">
-                        <script src="js/main.js"></script>
+                        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
                     </div>
                 </div>
                 <br>
