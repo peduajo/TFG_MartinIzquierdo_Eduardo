@@ -15,11 +15,15 @@
         </div>
         <div class="row">
             <form action="/login" class="form-signin" method="post">
-                <h2 class="form-signin-heading">Iniciar Sesión</h2>
-                <input type="email" name="email" id="inputEmail" class="form-control" placeholder="Email" required autofocus>
-                <input type="password" name="password" id="inputPassword" class="form-control" placeholder="Contraseña" required>
-                <button type="submit" class="btn btn-success btn-block" onclick="login()">Iniciar Sesión</button><br>
-                <a id="enlaceRegistro" href="/registro">¿No te has registrado?</a>
+                <h2 class="form-signin-heading">Registro</h2>
+                <label><b>Email</b></label><br>
+                <input type="email" name="email" id="inputEmail" class="form-control" required autofocus>
+                <label class="lblPwd"><b>Contraseña</b></label><br>
+                <input type="password" name="password" id="inputPassword" class="form-control" required>
+                <label><b>Repetir contraseña</b></label>
+                <input type="password" name="RepPassword" id="inputRepPassword" class="form-control" required>
+                <button type="submit" class="btn btn-success" onclick="location.href='/'">Registrarse</button>
+                <button class="btn btn-danger" onclick="location.href='/'">Cancelar</button>
             </form>
         </div>
     </div>

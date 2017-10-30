@@ -4,6 +4,8 @@ var parar = true;
 var mostrar = false;
 var discountFactor = null,refTesoro = null,refCesped = null,refHielo = null,refMontana = null,refAgua = null,refIsla = null,refMontanaHelada = null,iteracionesMaximas = null,maxPasos = null;
 function empezarJuego() {
+    $("#stopBtn").removeClass('disabled');
+    $("#circulos").removeClass('disabled');
     var gammaInp = document.getElementById("gamma");
     var tiempoEpInp = document.getElementById("tiempoEpisodio");
     var tesoroInp = document.getElementById("tesoro");
@@ -36,6 +38,8 @@ function pararJuego() {
     labelEstado.style.color = "red";
 }
 function reiniciarJuego(){
+    $("#stopBtn").addClass('disabled');
+    $("#circulos").addClass('disabled');
     parar = true;
     var labelEstado = document.getElementById("estado");
     labelEstado.innerHTML = "PARADO";

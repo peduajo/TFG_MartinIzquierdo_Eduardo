@@ -16,16 +16,16 @@
             <h1 align="center">Visualización de Aprendizaje por Refuerzo</h1>
         </div>
         <div class="row" align="right">
-            <button style="color: black" onclick="location.href='/logout'">Cerrar Sesión</button>
+            <button style="color: black" class="btn btn-danger" onclick="location.href='/logout'">Cerrar Sesión</button>
         </div>
         <div class="row">
             <div class="col-md-6">
                 <br>
                 <div class="row" align="center">
-                    <input type="button" id="entrenarBtn" value="Entrenar" onclick="empezarJuego()">
-                    <input type="button" id="stopBtn" value="Parar" onclick="pararJuego()">
-                    <input type="button" id="reiniciarBtn" value="Reiniciar" onclick="reiniciarJuego()">
-                    <input type="button" id="circulos" value="Mostrar/Quitar valoraciones" onclick="circulos()">
+                    <input type="button" class="btn btn-success" id="entrenarBtn" value="Entrenar" onclick="empezarJuego()">
+                    <input type="button" class="btn btn-warning disabled" id="stopBtn" value="Parar" onclick="pararJuego()">
+                    <input type="button" class="btn btn-primary" id="reiniciarBtn" value="Reiniciar" onclick="reiniciarJuego()">
+                    <input type="button" class="btn btn-primary disabled" id="circulos" value="Mostrar/Quitar valoraciones" onclick="circulos()">
                 </div>
                 <br>
                 <div class="row" align="center">
@@ -92,7 +92,7 @@
                 <br>
                 <br>
                 <div class="row">
-                    <input type="button" id="valoresBtn" value="Valores por defecto" onclick="cargarValores()">
+                    <input type="button" class="btn btn-primary" id="valoresBtn" value="Valores por defecto" onclick="cargarValores()">
                 </div>
             </div>
         </div>

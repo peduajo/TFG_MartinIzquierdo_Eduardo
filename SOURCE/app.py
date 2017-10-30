@@ -18,6 +18,10 @@ def do_admin_login():
         flash('CAMPOS INCORRECTOS')
     return home()
 
+@app.route('/registro')
+def registro():
+    return render_template('registro.html')
+
 @app.route("/logout")
 def logout():
     session['logged_in'] = False
