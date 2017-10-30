@@ -4,8 +4,12 @@ var parar = true;
 var mostrar = false;
 var discountFactor = null,refTesoro = null,refCesped = null,refHielo = null,refMontana = null,refAgua = null,refIsla = null,refMontanaHelada = null,iteracionesMaximas = null,maxPasos = null;
 function empezarJuego() {
+    $("#entrenarBtn").addClass('disabled');
     $("#stopBtn").removeClass('disabled');
     $("#circulos").removeClass('disabled');
+    document.getElementById("entrenarBtn").disabled = true;
+    document.getElementById("stopBtn").disabled = false;
+    document.getElementById("circulos").disabled = false;
     var gammaInp = document.getElementById("gamma");
     var tiempoEpInp = document.getElementById("tiempoEpisodio");
     var tesoroInp = document.getElementById("tesoro");
@@ -32,6 +36,10 @@ function empezarJuego() {
     labelEstado.style.color = "blue";
 }
 function pararJuego() {
+    $("#stopBtn").addClass('disabled');
+    $("#entrenarBtn").removeClass('disabled');
+    document.getElementById("stopBtn").disabled = true;
+    document.getElementById("entrenarBtn").disabled = false;
     parar = true;
     var labelEstado = document.getElementById("estado");
     labelEstado.innerHTML = "PARADO";
@@ -40,6 +48,8 @@ function pararJuego() {
 function reiniciarJuego(){
     $("#stopBtn").addClass('disabled');
     $("#circulos").addClass('disabled');
+    document.getElementById("stopBtn").disabled = true;
+    document.getElementById("circulos").disabled = true;
     parar = true;
     var labelEstado = document.getElementById("estado");
     labelEstado.innerHTML = "PARADO";
