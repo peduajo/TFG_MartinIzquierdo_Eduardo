@@ -2,21 +2,42 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VAR</title>
+    <title>Entrenamiento</title>
     <script src="{{ url_for('static', filename='js/lib/jquery-3.2.1.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/lib/phaser.js') }}"></script>
     <script src="{{ url_for('static', filename='js/Preload.js') }}"></script>
     <script src="{{ url_for('static', filename='js/Game.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/lib/bootstrap.min.css') }}">
     <script src="{{ url_for('static', filename='js/lib/bootstrap.min.js') }}"></script>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/images/bot.png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/signin.css') }}">
+    <script type="text/javascript">
+        initURL("{{ urlCirculo }}","{{ urlTesoro }}","{{ urlBot }}","{{urlMapa}}","{{urlTileset}}");
+    </script>
 </head>
 <body>
     <div class="container">
-        <div class="row" style="background-color: #1b6d85;color: white;">
-            <h1 align="center">Visualización de Aprendizaje por Refuerzo</h1>
-        </div>
-        <div class="row" align="right">
-            <button style="color: black" class="btn btn-danger" onclick="location.href='/logout'">Cerrar Sesión</button>
+        <div class="row">
+            <nav class="navbar navbar-inverse">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <a class="navbar-brand" href="/home">VAR</a>
+                    </div>
+                    <ul class="nav navbar-nav">
+                        <li class="active"><a href="/home">Home</a></li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Bienvenido, {{name}} <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Configuración</a></li>
+                            <li><a href="#">Sobre Nosotros</a></li>
+                            <li class="divider"></li>
+                            <li><a href="/login">Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                    </ul>
+                </div>
+            </nav>
         </div>
         <div class="row">
             <div class="col-md-6">
@@ -54,39 +75,46 @@
                 <div class="row">
                     <h2>Datos del Aprendizaje</h2>
                     <br>
-                    <form>
-                        Gamma:<br>
-                        <input type="text" id="gamma"><br>
-                        Episodios máximos:<br>
-                        <input type="text" id="maxPasos"><br>
-                        Iteraciones máximas por episódio:<br>
-                        <input type="text" id="tiempoEpisodio"><br>
-                    </form>
-                </div>
-                <div class="row">
-                    <h2>Recompensas</h2>
-                    <br>
                     <div class="col-md-6">
                         <form>
-                            Tesoro:<br>
-                            <input type="text" id="tesoro"><br>
-                            Cesped:<br>
-                            <input type="text" id="cesped"><br>
-                            Agua:<br>
-                            <input type="text" id="agua"><br>
-                            Hielo:<br>
-                            <input type="text" id="hielo">
+                            Gamma:<br>
+                            <input type="text" id="gamma"><br><br>
+                            Episodios máximos:<br>
+                            <input type="text" id="maxPasos"><br><br>
+                            Iteraciones máximas por episodio:<br>
+                            <input type="text" id="tiempoEpisodio"><br><br>
+                            Repeticiones del diferencial de Q:<br>
+                            <input type="text" id="repeticionesQ"><br><br>
+                            <p id="errorValores" class=flashes-carga style="display: none">FALTAN VALORES POR INTRODUCIR</p>
                         </form>
                     </div>
                     <div class="col-md-6">
                         <form>
-                            Isla:<br>
-                            <input type="text" id="isla"><br>
-                            Montaña:<br>
-                            <input type="text" id="montana"><br>
-                            Montaña de hielo:<br>
-                            <input type="text" id="montanaH"><br>
+                            Episodio actual:<br>
+                            <div class="panel panel-default">
+                                <div class="panel-body" id="episodioActual">0</div>
+                            </div>
+                            Repeticiones del diferencial de Q:<br>
+                            <div class="panel panel-default">
+                                <div class="panel-body" id="repDiferencialQ">0</div>
+                            </div>
+                            Resultado del último episodio:<br>
+                            <div class="panel panel-default">
+                                <div class="panel-body" id="ultimoScore">--</div>
+                            </div>
                         </form>
+                    </div>
+                </div>
+                <div class="row">
+                    <h2>Recompensas</h2>
+                    <br>
+                    <div class="col-md-6" id="listaRefuerzos">
+                        <ul class="list-group" style="padding: 0;margin: 0;overflow-y: scroll;overflow-x: hidden; width: 12em;height: 12em;line-height: 2em;border: 1px solid">
+                            <input type="text" class="list-group-item" placeholder="tesoro" id="tesoro">
+                            {% for ref in listaRefuerzos %}
+                            <input type="text" class="list-group-item" placeholder="{{ref}}" id="{{ref}}">
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
                 <br>

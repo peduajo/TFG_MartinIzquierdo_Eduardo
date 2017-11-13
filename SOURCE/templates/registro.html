@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <script src="{{ url_for('static', filename='js/lib/jquery-3.2.1.min.js') }}"></script>
-    <title>LoginTFG</title>
+    <title>Registro</title>
     <link  rel="stylesheet" href="{{ url_for('static', filename='css/lib/bootstrap.min.css') }}">
     <script src="{{ url_for('static', filename='js/lib/bootstrap.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/signin.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/images/bot.png') }}" />
 </head>
 <body>
     <div class="container">
@@ -14,17 +15,26 @@
             <h1 align="center">Visualización de Aprendizaje por Refuerzo</h1>
         </div>
         <div class="row">
-            <form action="/login" class="form-signin" method="post">
+            <form action="/registro" class="form-signin" method="post">
                 <h2 class="form-signin-heading">Registro</h2>
                 <label><b>Email</b></label><br>
                 <input type="email" name="email" id="inputEmail" class="form-control" required autofocus>
                 <label class="lblPwd"><b>Contraseña</b></label><br>
                 <input type="password" name="password" id="inputPassword" class="form-control" required>
                 <label><b>Repetir contraseña</b></label>
-                <input type="password" name="RepPassword" id="inputRepPassword" class="form-control" required>
-                <button type="submit" class="btn btn-success" onclick="location.href='/'">Registrarse</button>
-                <button class="btn btn-danger" onclick="location.href='/'">Cancelar</button>
+                <input type="password" name="repPassword" id="inputRepPassword" class="form-control" required>
+                <button type="submit" class="btn btn-success">Registrarse</button>
+                <button class="btn btn-danger" onclick="location.href='/login'">Cancelar</button>
             </form>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul class=flashes>
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
         </div>
     </div>
 </body>

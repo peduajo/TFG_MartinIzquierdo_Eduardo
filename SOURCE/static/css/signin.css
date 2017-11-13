@@ -32,3 +32,47 @@ body {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
+
+.flashes{
+  margin-top: 10px;
+  color: red;
+  font-weight: 600;
+  text-align: center;
+  list-style-type: none;
+}
+
+.flashes-carga{
+  margin-top: 10px;
+  color: red;
+  font-weight: 600;
+  text-align: left;
+  list-style-type: none;
+}
+
+.tituloCarga{
+  font-weight: 600;
+}
+
+.navbar-login
+{
+  width: 305px;
+  padding: 10px;
+  padding-bottom: 0px;
+}
+
+.navbar-login-session
+{
+  padding: 10px;
+  padding-bottom: 0px;
+  padding-top: 0px;
+}
+
+.icon-size
+{
+  font-size: 87px;
+}
+
+.panel
+{
+  width : 30%;
+}

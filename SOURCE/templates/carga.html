@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <script src="{{ url_for('static', filename='js/lib/jquery-3.2.1.min.js') }}"></script>
+    <title>VAR</title>
+    <link  rel="stylesheet" href="{{ url_for('static', filename='css/lib/bootstrap.min.css') }}">
+    <script src="{{ url_for('static', filename='js/lib/bootstrap.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/signin.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/images/bot.png') }}" />
+    <script type="text/javascript">
+        $(document).ready(function(e) {
+            var $select = $('#selCarga');
+            if($select.val() == 'Cargar mapa'){
+                location.reload(true);
+            }
+        });
+    </script>
+</head>
+<body>
+    <script>
+        function addRef(){
+            var x = document.getElementById("selRef");
+            var labelRef = document.getElementById("nuevoRef");
+            var nuevoRef = labelRef.value;
+            if(nuevoRef !== null){
+                var option = document.createElement("option");
+                option.text = nuevoRef;
+                x.add(option);
+            }
+            labelRef.value = "";
+        }
+        function deleteRef(){
+            var x = document.getElementById("selRef");
+            x.remove(x.selectedIndex);
+        }
+        function cambiarOpcionCarga(){
+            var selCarga = document.getElementById("selCarga");
+            var abrirMOpc = document.getElementById("abrirMapa");
+            var abrirTOpc = document.getElementById("abrirTileset");
+            var cargarOpc = document.getElementById("selMap");
+            var strongAbreMapa = document.getElementById("strongAbreMapa");
+            var strongAbreTileset = document.getElementById("strongAbreTileset");
+            var strongCargaMapa = document.getElementById("strongCargaMapa");
+            var strongIntroducirRefuerzos = document.getElementById("strongIntroducirRefuerzos");
+            var btnAñadir = document.getElementById("btnAñadir");
+            var btnEliminar = document.getElementById("btnEliminar");
+            var selecRefuerzos = document.getElementById("selRef");
+            var inputNuevoRef = document.getElementById("nuevoRef");
+            if(selCarga.getElementsByTagName('option')[1].selected){
+                cargarOpc.style.display = "block";
+                abrirMOpc.style.display = "none";
+                abrirTOpc.style.display = "none";
+                strongAbreMapa.style.display = "none";
+                strongAbreTileset.style.display = "none";
+                strongIntroducirRefuerzos.style.display = "none";
+                strongCargaMapa.style.display = "block";
+                btnAñadir.style.visibility = "hidden";
+                btnEliminar.style.visibility = "hidden";
+                selecRefuerzos.style.display = "none";
+                inputNuevoRef.style.visibility = "hidden";
+
+            }else{
+                cargarOpc.style.display = "none";
+                abrirMOpc.style.display = "block";
+                abrirTOpc.style.display = "block";
+                strongAbreMapa.style.display = "block";
+                strongAbreTileset.style.display = "block";
+                strongIntroducirRefuerzos.style.display = "block";
+                strongCargaMapa.style.display = "none";
+                btnAñadir.style.visibility = "visible";
+                btnEliminar.style.visibility = "visible";
+                selecRefuerzos.style.display = "block";
+                inputNuevoRef.style.visibility = "visible";
+            }
+        }
+        function seleccionarTodo(){
+            var opciones = document.getElementById("selRef").options;
+            for(var i=1;i<opciones.length;i++){
+                    opciones[i].selected = "true";
+            }
+        }
+    </script>
+    <div class="container">
+        <div class="row">
+            <nav class="navbar navbar-inverse">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <a class="navbar-brand" href="/home">VAR</a>
+                    </div>
+                    <ul class="nav navbar-nav">
+                        <li class="active"><a href="/home">Home</a></li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Bienvenido, {{name}} <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Configuración</a></li>
+                            <li><a href="#">Acerca de...</a></li>
+                            <li class="divider"></li>
+                            <li><a href="/login">Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+        <div class="row">
+            <h2 class="tituloCarga">CARGAR MAPA</h2>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-md-12" >
+                <form action="{{url_for('home', email = name, idUser = idUser) }}" class="form-group" method="post" enctype="multipart/form-data" onsubmit="seleccionarTodo()">
+                    <strong>Selecciona el tipo de carga</strong><br><br>
+                    <select class="form-control" id="selCarga" name="tipoCarga" style="width: 20%" onchange="cambiarOpcionCarga()">
+                        <option>Abrir nuevo mapa</option>
+                        <option>Cargar mapa</option>
+                    </select>
+                    <br>
+                    <strong id="strongCargaMapa" style="display: none;">Elige un mapa</strong>
+                    <select class="form-control" id="selMap" name="listaMapas" style='height: 100%;width: 35%; display: none' >
+                        {% for nombre in mapasUsuario %}
+                        <option id="mapaSeleccionado">{{nombre}}</option>
+                        {% endfor %}
+                    </select>
+                    <br>
+                    <strong id="strongAbreMapa">Abre un mapa JSON</strong>
+                    <input type="file" class="btn btn-default btn-file" id="abrirMapa" name="mapaJson">
+                    <strong id="strongAbreTileset">Abre un conjunto de patrones</strong>
+                    <input type="file" class="btn btn-default btn-file" id="abrirTileset" name="tileSet" accept="image/*">
+                    <br>
+                    <strong id="strongIntroducirRefuerzos">Introduzca los tipos de refuerzos</strong><br><br>
+                    <input name="txtValue" type="text" id="nuevoRef"/>
+                    <input type="button"  id="btnAñadir" class="btn btn-success" name="add" value="Añadir" onclick="addRef();" />
+                    <input type="button" id="btnEliminar" class="btn btn-danger" name="delete" value="Eliminar" onclick="deleteRef();" /><br><br>
+                    <select class="form-control" id="selRef" name="listaRefuerzos" style='height: 100%;width: 35%;' multiple>
+                        <option value="empty">
+                    </select>
+                    <br>
+                    <button type="submit" class="btn btn-primary btn-block" style="width: 20%">Cargar</button>
+                    {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <ul class="flashes-carga">
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                    {% endwith %}
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

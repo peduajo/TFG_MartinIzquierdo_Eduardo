@@ -1,12 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <script src="{{ url_for('static', filename='js/lib/jquery-3.2.1.min.js') }}"></script>
-    <title>LoginTFG</title>
+    <title>Login</title>
     <link  rel="stylesheet" href="{{ url_for('static', filename='css/lib/bootstrap.min.css') }}">
     <script src="{{ url_for('static', filename='js/lib/bootstrap.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/signin.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/images/bot.png') }}" />
 </head>
 <body>
     <div class="container">
@@ -18,9 +19,18 @@
                 <h2 class="form-signin-heading">Iniciar Sesión</h2>
                 <input type="email" name="email" id="inputEmail" class="form-control" placeholder="Email" required autofocus>
                 <input type="password" name="password" id="inputPassword" class="form-control" placeholder="Contraseña" required>
-                <button type="submit" class="btn btn-success btn-block" onclick="login()">Iniciar Sesión</button><br>
+                <button type="submit" class="btn btn-success btn-block">Iniciar Sesión</button><br>
                 <a id="enlaceRegistro" href="/registro">¿No te has registrado?</a>
             </form>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul class="flashes">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
         </div>
     </div>
 </body>
