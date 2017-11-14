@@ -21,11 +21,22 @@ class Map(Base):
     mapa = Column(Text)
     nombreMapa = Column(String)
     tileSet = Column(LargeBinary)
+    nombreTileSet = Column(String)
     refuerzos = Column(String)
+    capaObjetos = Column(String)
+    capasBackground = Column(String)
+    width = Column(Integer)
+    height = Column(Integer)
 
-    def __init__(self, mapa, idUser,nombreMapa,tileSet,refuerzos):
+    def __init__(self, mapa, idUser,nombreMapa,tileSet,nombreTileSet,refuerzos,capaObjetos,capasBackground,width,heigh):
         self.mapa = mapa
         self.idUser = idUser
         self.nombreMapa = nombreMapa
         self.tileSet = tileSet
+        self.nombreTileSet = nombreTileSet
         self.refuerzos = refuerzos
+        self.capaObjetos = capaObjetos
+        self.capasBackground = capasBackground
+        self.width = width
+        self.height = heigh
+

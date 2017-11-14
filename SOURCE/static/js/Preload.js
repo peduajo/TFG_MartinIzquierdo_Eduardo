@@ -1,6 +1,7 @@
 var AprendizajePorRefuerzo = AprendizajePorRefuerzo || {};
-var urlCirculo = null,urlTesoro  = null,urlBot = null,urlMapa = null, urlTileset = null;
-function initURL(circulo,tesoro,bot,mapa,tileSet){
+var urlCirculo,urlTesoro,urlBot,urlMapa,urlTileset, x,y;
+
+function initURL(circulo,tesoro,bot,mapa,tileSet,width,height){
     urlCirculo = circulo;
     urlTesoro = tesoro;
     urlBot = bot;

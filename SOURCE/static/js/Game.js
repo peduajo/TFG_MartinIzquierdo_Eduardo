@@ -2,7 +2,19 @@ var AprendizajePorRefuerzo = AprendizajePorRefuerzo || {};
 
 var parar = true;
 var mostrar = false;
-var discountFactor = null,iteracionesMaximas = null,maxPasos = null,repDifQ = null,cargarRefuerzos = false;
+var discountFactor, iteracionesMaximas, maxPasos, repDifQ, cargarRefuerzos, descargaQ, nombreTileSet, cObjetos, cBackground, backGroundLayers = [], x, y;
+
+function getSize(){
+    return [x,y];
+}
+
+function initGame(nombreTileS,capaObjetos,capasBackground,width,height){
+    nombreTileSet = nombreTileS;
+    cObjetos = capaObjetos;
+    cBackground = capasBackground.split("-");
+    x = width;
+    y = height;
+}
 function getControlFormulario(){
     var gammaInp = document.getElementById("gamma");
     var tiempoEpInp = document.getElementById("tiempoEpisodio");
@@ -64,10 +76,8 @@ function reiniciarJuego(){
     document.getElementById("ultimoScore").innerHTML = "--";
     $("#entrenarBtn").removeClass('disabled');
     $("#stopBtn").addClass('disabled');
-    $("#circulos").addClass('disabled');
     document.getElementById("entrenarBtn").disabled = false;
     document.getElementById("stopBtn").disabled = true;
-    document.getElementById("circulos").disabled = true;
     parar = true;
     var labelEstado = document.getElementById("estado");
     labelEstado.innerHTML = "PARADO";
@@ -99,21 +109,23 @@ function cargarValores() {
         list[i].value = rndRef[Math.floor(Math.random() * rndRef.length)];
     }
 }
+function descargarQ(){
+    descargaQ = true;
+}
 
 AprendizajePorRefuerzo.Game = function () {};
 
 AprendizajePorRefuerzo.Game.prototype = {
     create : function(){
         this.map = this.game.add.tilemap('map');
-        this.map.addTilesetImage('tiles2','gameTiles');
-        this.backgroundlayer = this.map.createLayer('backgroundLayer');
-        this.backgroundlayer.resizeWorld();
-        this.spriteBot = this.game.add.tileSprite(this.ajustarPunto("x"),this.ajustarPunto("y"),16,16,'bot');
+        this.map.addTilesetImage(nombreTileSet,'gameTiles');
+        this.addBackground();
+        this.spriteBot = this.game.add.tileSprite(this.ajustarPunto("x"),this.ajustarPunto("y"),this.map.tileWidth,this.map.tileHeight,'bot');
         this.spriteBot.anchor.setTo(0.5);
         this.spriteBot.scale.setTo(0.8);
         this.inicioTesoroX = this.ajustarPunto("x");
         this.inicioTesoroY = this.ajustarPunto("y");
-        this.tesoro = this.game.add.tileSprite(this.inicioTesoroX,this.inicioTesoroY,16,16,'tesoro');
+        this.tesoro = this.game.add.tileSprite(this.inicioTesoroX,this.inicioTesoroY,this.map.tileWidth,this.map.tileHeight,'tesoro');
         this.tesoro.anchor.setTo(0.5);
         this.tesoro.scale.setTo(0.8);
         this.game.physics.enable([this.spriteBot,this.tesoro],Phaser.Physics.ARCADE);
@@ -142,6 +154,30 @@ AprendizajePorRefuerzo.Game.prototype = {
         this.creados = false;
     },
     update : function () {
+        if(descargaQ){
+            descargaQ = false;
+            var inicio = ['Estado'];
+            var acciones = ["arriba","abajo","izquierda","derecha"];
+            var primeraFila = inicio.concat(acciones);
+            var data = this.Q;
+            var csvContent = "data:text/csv;charset=utf-8,";
+            csvContent +=primeraFila + "\n";
+            var estados = Object.keys(this.Q);
+            for(var i=0;i<estados.length;i++){
+                var valoresEstado = Object.values(this.Q[estados[i]]);
+                estados[i] = estados[i].replace(',','-');
+                var fila = [estados[i]];
+                for(var j=0;j<valoresEstado.length;j++){
+                    fila.push(valoresEstado[j].toFixed(3));
+                }
+                csvContent += fila+ "\n";
+            }
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Qmatrix.csv");
+            link.click();
+        }
         if(cargarRefuerzos){
             var list = document.getElementById("listaRefuerzos").getElementsByTagName("input");
             for(var i=0;i<list.length;i++){
@@ -154,14 +190,16 @@ AprendizajePorRefuerzo.Game.prototype = {
             if(!this.creados){
                 this.crearCirculos();
                 this.creados = true;
-                this.backgroundlayer.alpha = 0.25;
+                for(var i=0;i<backGroundLayers.length;i++){
+                    backGroundLayers[i].alpha = 0.25;
+                }
             }
-            if(this.pasos > 5){
+            if(this.pasos > 10){
                 this.ajustarCirculos();
             }
             var posicionRatonX = this.game.input.mousePointer.x;
             var posicionRatonY = this.game.input.mousePointer.y;
-            var tilePointer = this.map.getTileWorldXY(posicionRatonX,posicionRatonY,this.map.tileWidth,this.map.tileHeight,this.backgroundlayer);
+            var tilePointer = this.map.getTileWorldXY(posicionRatonX,posicionRatonY,this.map.tileWidth,this.map.tileHeight);
             if(tilePointer !== null){
                 var estadoPointer = [tilePointer.x,tilePointer.y];
                 document.getElementById("valArriba").innerHTML = this.Q[estadoPointer]["arriba"].toFixed(3);
@@ -173,7 +211,9 @@ AprendizajePorRefuerzo.Game.prototype = {
         else if(this.creados){
             this.destruirCirculos();
             this.creados = false;
-            this.backgroundlayer.alpha = 1.0;
+            for(var i=0;i<backGroundLayers.length;i++){
+                    backGroundLayers[i].alpha = 1.0;
+                }
         }
         if(!parar){
             document.getElementById("episodioActual").innerHTML = this.pasos;
@@ -193,7 +233,6 @@ AprendizajePorRefuerzo.Game.prototype = {
                 this.incQ(estado,accion,alpha,inc);
                 this.mejorValEstadosProx = this.mejorValoracion();
                 this.difQ = this.difValoraciones();
-                console.log("diferencial de Q: "+this.difQ);
                 this.iteraciones += 1;
 
             }
@@ -222,6 +261,13 @@ AprendizajePorRefuerzo.Game.prototype = {
 
         }
 
+    },
+    addBackground : function(){
+        for(var i=0;i<cBackground.length;i++){
+            var backgroundlayer = this.map.createLayer(cBackground[i]);
+            backgroundlayer.resizeWorld();
+            backGroundLayers.push(backgroundlayer);
+        }
     },
     getRectangulos : function(){
         var rectangulosPorTipo = {};
@@ -254,10 +300,10 @@ AprendizajePorRefuerzo.Game.prototype = {
     crearCirculos : function () {
         for(var j=this.map.tileHeight/2; j<this.map.heightInPixels;j+=this.map.tileHeight){
             for(var i=this.map.tileWidth/2; i<this.map.widthInPixels;i+=this.map.tileWidth){
-                var circulo = this.game.add.tileSprite(i,j,16,16,'circuloAmarillo');
+                var circulo = this.game.add.tileSprite(i,j,this.map.tileWidth,this.map.tileHeight,'circuloAmarillo');
                 circulo.anchor.setTo(0.5);
                 circulo.scale.setTo(0.1);
-                var estadoCirculo = this.map.getTileWorldXY(i,j,this.map.tileWidth,this.map.tileHeight,this.backgroundlayer);
+                var estadoCirculo = this.map.getTileWorldXY(i,j,this.map.tileWidth,this.map.tileHeight);
                 this.circulos[[estadoCirculo.x,estadoCirculo.y]] = circulo;
             }
         }
@@ -390,11 +436,11 @@ AprendizajePorRefuerzo.Game.prototype = {
         }
     },
     getEstadoBot: function () {
-        var tileB = this.map.getTileWorldXY(this.spriteBot.body.x,this.spriteBot.body.y,this.map.tileWidth,this.map.tileHeight,this.backgroundlayer);
+        var tileB = this.map.getTileWorldXY(this.spriteBot.body.x,this.spriteBot.body.y,this.map.tileWidth,this.map.tileHeight);
         return [tileB.x,tileB.y];
     },
     getEstadoTesoro : function () {
-        var tileT = this.map.getTileWorldXY(this.tesoro.body.x,this.tesoro.body.y,this.map.tileWidth,this.map.tileHeight,this.backgroundlayer);
+        var tileT = this.map.getTileWorldXY(this.tesoro.body.x,this.tesoro.body.y,this.map.tileWidth,this.map.tileHeight);
         return [tileT.x,tileT.y];
     },
     ajustarPunto : function (eje) {
@@ -421,7 +467,7 @@ AprendizajePorRefuerzo.Game.prototype = {
     },
     findObjectsByType : function (type) {
         var result = [];
-        this.map.objects['objectLayer'].forEach(function (element) {
+        this.map.objects[cObjetos].forEach(function (element) {
             if(element.properties.type === type){
                 result.push(element);
             }

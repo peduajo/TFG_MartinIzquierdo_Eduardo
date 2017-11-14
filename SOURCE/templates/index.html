@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/signin.css') }}">
     <script type="text/javascript">
         initURL("{{ urlCirculo }}","{{ urlTesoro }}","{{ urlBot }}","{{urlMapa}}","{{urlTileset}}");
+        initGame("{{ nombreTileSet }}","{{ capaObjetos }}","{{capasBackground}}","{{x}}","{{y}}");
     </script>
 </head>
 <body>
@@ -21,17 +22,14 @@
             <nav class="navbar navbar-inverse">
                 <div class="container-fluid">
                     <div class="navbar-header">
-                        <a class="navbar-brand" href="/home">VAR</a>
+                        <a class="navbar-brand" href="#">VAR</a>
                     </div>
                     <ul class="nav navbar-nav">
-                        <li class="active"><a href="/home">Home</a></li>
+                        <li class="active"><a href="#">Home</a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
                         <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Bienvenido, {{name}} <b class="caret"></b></a>
                         <ul class="dropdown-menu">
-                            <li><a href="#">Configuración</a></li>
-                            <li><a href="#">Sobre Nosotros</a></li>
-                            <li class="divider"></li>
                             <li><a href="/login">Cerrar Sesión</a></li>
                         </ul>
                     </li>
@@ -46,7 +44,7 @@
                     <input type="button" class="btn btn-success" id="entrenarBtn" value="Entrenar" onclick="empezarJuego()">
                     <input type="button" class="btn btn-warning disabled" id="stopBtn" value="Parar" onclick="pararJuego()" disabled>
                     <input type="button" class="btn btn-primary" id="reiniciarBtn" value="Reiniciar" onclick="reiniciarJuego()">
-                    <input type="button" class="btn btn-primary disabled" id="circulos" value="Mostrar/Quitar valoraciones" onclick="circulos()" disabled>
+                    <input type="button" class="btn btn-primary" id="circulos" value="Mostrar/Quitar valoraciones" onclick="circulos()">
                 </div>
                 <br>
                 <div class="row" align="center">
@@ -121,6 +119,7 @@
                 <br>
                 <div class="row">
                     <input type="button" class="btn btn-primary" id="valoresBtn" value="Valores por defecto" onclick="cargarValores()">
+                    <input type="button" class="btn btn-success" id="descargaBtn" value="descargar Q-Matrix" onclick="descargarQ()">
                 </div>
             </div>
         </div>
