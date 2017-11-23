@@ -2,11 +2,8 @@ import Mundo
 import threading
 import time
 import csv
-import random
 
 discount = 0.9
-epsilon = 1.0
-epsilonDecay = 0.9999
 acciones = Mundo.acciones
 estados = Mundo.estados
 final = Mundo.final
@@ -56,7 +53,6 @@ def inicializarTablas():
         N[estado] = tempA
 
 def moverse(accion):
-    s = Mundo.bot
     if accion == acciones[0]:
         r = Mundo.moverse(0, -1)
     elif accion == acciones[1]:
@@ -66,7 +62,7 @@ def moverse(accion):
     elif accion == acciones[3]:
         r = Mundo.moverse(1, 0)
     s2 = Mundo.bot
-    return s , accion , r , s2
+    return r , s2
 
 def maxQ(s):
     val = None
@@ -93,36 +89,27 @@ def imprimirQmatrix():
         for list in tabla:
             writer.writerow(list)
 
-def eGreedy(s):
-    posAcc = posiblesAcciones(s)
-    numR = random.uniform(0,1)
-    if numR < epsilon:
-        accion = posAcc[random.randint(0,len(posAcc)-1)]
-    else:
-        accion,_ = maxQ(s)
 
-    return accion
 
 def run():
     global discount,epsilon,epsilonDecay
     time.sleep(1)
     inicializarTablas()
-    print "El bot esta en: ",Mundo.bot[0],"-",Mundo.bot[1]
-    print "El tesoro esta en: ",Mundo.final[0],"-",Mundo.final[1]
     t = 1
     pruebas = 0
     sleep = 0.005
+    scores = []
     while True:
         s = Mundo.bot
-        #accion = eGreedy(s)
-        accion,_ = maxQ(s)
-        (s, a, r, s2) = moverse(accion)
-        N[s][a] += 1
-        alpha = float(60)/float(59 + N[s][a])
+        accion, _ = maxQ(s)
+        r, s2 = moverse(accion)
+        N[s][accion] += 1
+        alpha = float(60)/float(59 + N[s][accion])
         _, maxVal = maxQ(s2)
-        incQ(s, a, alpha, r + discount * maxVal)
+        incQ(s, accion, alpha, r + discount * maxVal)
         t += 1.0
         if Mundo.haReiniciado():
+            scores.append(Mundo.score)
             Mundo.reiniciarJuego()
             time.sleep(0.01)
             t = 1.0
@@ -131,8 +118,6 @@ def run():
             imprimirQmatrix()
             sleep=0.1
         time.sleep(sleep)
-        epsilon *= epsilonDecay
-        #print "epsilon: ",epsilon," alpha: ",alpha
 
 t = threading.Thread(target=run)
 t.daemon = True
