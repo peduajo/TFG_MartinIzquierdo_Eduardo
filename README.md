@@ -25,4 +25,6 @@ Una vez hecho esto, hay que acceder a la URL en el buscador. En este caso:
 	
 	http://127.0.0.1:5000/login
 
-Una vez aquí, se recomienda mirar el Anexo B del documento del presente TFG para seguir el manual de usuario.
+Para cargar el entrenamiento, hay que cargar el archivo JSON del mapa y el archivo PNG del conjunto de patrones. Estos archivos se encuentran en el directorio MAPASEJEMPLOS.
+
+Nota: se recomienda mirar el Anexo B del documento del presente TFG para seguir el manual de usuario.
