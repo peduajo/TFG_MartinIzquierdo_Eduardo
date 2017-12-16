@@ -6708,8 +6708,7 @@ Material.idCounter = 0;
                 al--;
                 i= 0;
             }
-            else if(i++ > 3*al) return;      // no convex angles :(
-	    //else if(i++ > 3*al) break;
+            else if(i++ > 3*al) break;      // no convex angles :(
         }
         tgs.push(avl[0], avl[1], avl[2]);
         return tgs;
